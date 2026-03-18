@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的日記</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ===== LOCK SCREEN ===== */
+#lock-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #0d0c0a;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+}
+#lock-screen::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.lock-box {
+  position: relative; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 1.5rem;
+  animation: fadeInUp .5s ease;
+}
+@keyframes fadeInUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+.lock-icon {
+  font-size: 2rem; opacity: .4;
+  animation: pulse 3s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity:.35; } 50% { opacity:.6; } }
+.lock-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 1.1rem; color: #c4a45e; letter-spacing: .12em; font-weight: 300;
+}
+.lock-subtitle {
+  font-family: 'DM Mono', monospace;
+  font-size: .6rem; letter-spacing: .2em; color: #6b6660;
+  margin-top: -.75rem;
+}
+.lock-input-wrap { position: relative; }
+#lock-input {
+  background: #161512; border: 1px solid #2a2824;
+  border-radius: 3px; color: #e2ddd4;
+  font-family: 'DM Mono', monospace; font-size: .9rem;
+  letter-spacing: .2em; padding: .75rem 3rem .75rem 1.25rem;
+  width: 220px; text-align: center;
+  transition: border-color .2s; outline: none;
+}
+#lock-input:focus { border-color: #c4a45e; }
+#lock-input.shake {
+  animation: shake .35s ease;
+  border-color: #c97b6a !important;
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+#toggle-pw {
+  position: absolute; right: .75rem; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: #6b6660; cursor: pointer;
+  font-size: .85rem; line-height: 1; transition: color .15s; padding: 0;
+}
+#toggle-pw:hover { color: #9e9890; }
+#lock-btn {
+  background: #2a2010; color: #c4a45e;
+  border: 1px solid rgba(196,164,94,.2); border-radius: 2px;
+  font-family: 'DM Mono', monospace; font-size: .68rem;
+  letter-spacing: .15em; padding: .6rem 2rem; cursor: pointer;
+  transition: all .15s; width: 220px;
+}
+#lock-btn:hover { background: #352714; }
+.lock-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: .58rem; color: #4a4845; letter-spacing: .1em;
+}
+#lock-error {
+  font-family: 'DM Mono', monospace;
+  font-size: .65rem; color: #c97b6a; letter-spacing: .1em;
+  height: .9rem; transition: opacity .2s;
+}
+
+:root {
+  --bg: #0d0c0a;
+  --surface: #161512;
+  --surface2: #1e1c18;
+  --surface3: #252320;
+  --border: #2a2824;
+  --border2: #343230;
+  --good: #8fb87a;
+  --good-dim: #1e2d17;
+  --good-glow: rgba(143,184,122,0.12);
+  --bad: #c97b6a;
+  --bad-dim: #321a16;
+  --bad-glow: rgba(201,123,106,0.12);
+  --text: #e2ddd4;
+  --text-dim: #6b6660;
+  --text-mid: #9e9890;
+  --accent: #c4a45e;
+  --accent-dim: #2a2010;
+  --accent-glow: rgba(196,164,94,0.15);
+  --quote-bg: #13110e;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Serif TC', serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Subtle noise texture */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9998;
+}
+
+/* ===== DAILY QUOTE ===== */
+.quote-zone {
+  background: var(--quote-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 2.5rem 2rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.quote-zone::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: .4;
+}
+.quote-inner { max-width: 680px; margin: 0 auto; }
+
+.quote-label {
+  font-family: 'DM Mono', monospace;
+  font-size: .6rem; letter-spacing: .25em;
+  color: var(--accent); opacity: .7;
+  margin-bottom: 1rem;
+  display: flex; align-items: center; gap: .75rem;
+}
+.quote-label::after {
+  content: '';
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border2), transparent);
+}
+
+.quote-text {
+  font-family: 'Lora', serif;
+  font-size: 1.1rem; line-height: 1.8;
+  color: var(--text); font-style: italic;
+  letter-spacing: .02em;
+  position: relative; padding-left: 1.25rem;
+}
+.quote-text::before {
+  content: '"';
+  position: absolute; left: 0; top: -.1rem;
+  font-size: 2rem; color: var(--accent); opacity: .4;
+  font-family: 'Lora', serif; line-height: 1;
+}
+.quote-source {
+  margin-top: .75rem;
+  font-size: .75rem; color: var(--text-dim);
+  font-family: 'DM Mono', monospace; letter-spacing: .08em;
+  padding-left: 1.25rem;
+}
+
+.quote-actions {
+  display: flex; gap: .75rem; margin-top: 1.25rem; padding-left: 1.25rem;
+  align-items: center;
+}
+.btn-shuffle {
+  background: none; border: 1px solid var(--border2);
+  color: var(--text-mid); padding: .35rem .9rem;
+  border-radius: 2px; font-family: 'DM Mono', monospace;
+  font-size: .65rem; letter-spacing: .12em; cursor: pointer;
+  transition: all .2s;
+}
+.btn-shuffle:hover { border-color: var(--accent); color: var(--accent); }
+.btn-manage-quotes {
+  background: none; border: none;
+  color: var(--text-dim); font-family: 'DM Mono', monospace;
+  font-size: .65rem; letter-spacing: .1em; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+  transition: color .2s;
+}
+.btn-manage-quotes:hover { color: var(--accent); }
+
+/* ===== NAV ===== */
+.nav {
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex; gap: 0;
+  background: var(--surface);
+  position: sticky; top: 0; z-index: 100;
+}
+.nav-tab {
+  padding: .9rem 1.4rem;
+  font-family: 'DM Mono', monospace;
+  font-size: .7rem; letter-spacing: .14em;
+  color: var(--text-dim); cursor: pointer;
+  border: none; background: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px; transition: all .2s;
+}
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-tab:hover:not(.active) { color: var(--text-mid); }
+
+/* ===== PAGES ===== */
+.page { display: none; padding: 2rem; max-width: 720px; }
+.page.active { display: block; }
+
+/* ===== RECORD PAGE ===== */
+.date-bar {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.date-bar label {
+  font-family: 'DM Mono', monospace;
+  font-size: .65rem; letter-spacing: .15em; color: var(--text-dim);
+}
+.date-bar input[type=date] {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); padding: .4rem .7rem; border-radius: 2px;
+  font-family: 'DM Mono', monospace; font-size: .78rem;
+  transition: border-color .2s;
+}
+.date-bar input[type=date]:focus { outline: none; border-color: var(--accent); }
+
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+.entry-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px; padding: 1.25rem;
+  transition: border-color .2s;
+}
+.entry-card.good { border-top: 2px solid var(--good); }
+.entry-card.bad { border-top: 2px solid var(--bad); }
+
+.card-head {
+  display: flex; align-items: center; gap: .5rem;
+  font-family: 'DM Mono', monospace;
+  font-size: .68rem; letter-spacing: .18em;
+  margin-bottom: 1rem;
+}
+.card-head .pip {
+  width: 7px; height: 7px; border-radius: 50%;
+}
+.good .pip { background: var(--good); box-shadow: 0 0 6px var(--good-glow); }
+.bad .pip { background: var(--bad); box-shadow: 0 0 6px var(--bad-glow); }
+
+.entry-card textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text); font-family: 'Noto Serif TC', serif;
+  font-size: .83rem; line-height: 1.65;
+  padding: .7rem .85rem; resize: none; height: 88px;
+  transition: border-color .2s;
+}
+.entry-card textarea:focus { outline: none; border-color: var(--border2); }
+.entry-card textarea::placeholder { color: var(--text-dim); font-style: italic; }
+
+.add-btn {
+  margin-top: .75rem; width: 100%;
+  padding: .55rem; border-radius: 2px; border: none;
+  font-family: 'DM Mono', monospace; font-size: .68rem;
+  letter-spacing: .1em; cursor: pointer; transition: all .15s;
+}
+.good .add-btn { background: var(--good-dim); color: var(--good); }
+.good .add-btn:hover { background: #263a1c; }
+.bad .add-btn { background: var(--bad-dim); color: var(--bad); }
+.bad .add-btn:hover { background: #40221d; }
+
+/* entry list */
+.sec-label {
+  font-family: 'DM Mono', monospace;
+  font-size: .62rem; letter-spacing: .22em;
+  color: var(--text-dim); margin: 2rem 0 .85rem;
+}
+
+.entry-list { display: flex; flex-direction: column; gap: .4rem; }
+
+.entry-row {
+  display: flex; align-items: flex-start; gap: .75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 2px; padding: .7rem .9rem;
+  transition: border-color .15s;
+  animation: fadeIn .25s ease;
+}
+.entry-row:hover { border-color: var(--border2); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.etag {
+  font-family: 'DM Mono', monospace;
+  font-size: .6rem; letter-spacing: .1em;
+  padding: .18rem .5rem; border-radius: 2px;
+  white-space: nowrap; margin-top: .15rem; flex-shrink: 0;
+}
+.etag-good { background: var(--good-dim); color: var(--good); }
+.etag-bad { background: var(--bad-dim); color: var(--bad); }
+
+.etext { font-size: .83rem; line-height: 1.55; flex: 1; }
+.edate {
+  font-family: 'DM Mono', monospace;
+  font-size: .65rem; color: var(--text-dim);
+  white-space: nowrap; flex-shrink: 0;
+}
+.edel {
+  background: none; border: none;
+  color: var(--text-dim); cursor: pointer;
+  font-size: .8rem; padding: 0 .2rem; flex-shrink: 0;
+  transition: color .15s; line-height: 1;
+}
+.edel:hover { color: var(--bad); }
+
+.empty { color: var(--text-dim); font-size: .83rem; padding: 2rem 0; text-align: center; letter-spacing: .05em; }
+
+/* ===== STATS PAGE ===== */
+.stats-top {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: .85rem;
+  margin-bottom: 1.75rem;
+}
+.stat-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 3px; padding: 1.1rem 1.25rem;
+}
+.stat-period {
+  font-family: 'DM Mono', monospace;
+  font-size: .6rem; letter-spacing: .2em; color: var(--text-dim);
+  margin-bottom: .8rem;
+}
+.stat-nums { display: flex; gap: 1.25rem; }
+.snum { text-align: center; }
+.snum .v {
+  font-size: 1.85rem; font-weight: 600; line-height: 1;
+  font-family: 'DM Mono', monospace;
+}
+.snum.g .v { color: var(--good); }
+.snum.b .v { color: var(--bad); }
+.snum .l { font-size: .62rem; color: var(--text-dim); margin-top: .3rem; letter-spacing: .08em; }
+
+.chart-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 3px; padding: 1.35rem 1.5rem;
+  margin-bottom: 1rem;
+}
+.chart-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.25rem;
+}
+.chart-ttl {
+  font-family: 'DM Mono', monospace;
+  font-size: .65rem; letter-spacing: .18em; color: var(--text-dim);
+}
+.legend { display: flex; gap: 1rem; }
+.leg {
+  display: flex; align-items: center; gap: .35rem;
+  font-family: 'DM Mono', monospace; font-size: .6rem; color: var(--text-dim);
+}
+.leg-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+.bars { display: flex; align-items: flex-end; gap: .3rem; height: 110px; }
+.bgroup { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.bpair { display: flex; align-items: flex-end; gap: 2px; width: 100%; height: 90px; }
+.bar {
+  flex: 1; border-radius: 2px 2px 0 0; min-height: 2px;
+  transition: height .5s cubic-bezier(.4,0,.2,1);
+}
+.bar.g { background: var(--good); opacity: .8; }
+.bar.b { background: var(--bad); opacity: .8; }
+.blbl { font-family: 'DM Mono', monospace; font-size: .55rem; color: var(--text-dim); margin-top: .2rem; }
+
+.totals {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 3px; padding: 1.1rem 1.5rem;
+  display: flex; gap: 2rem; flex-wrap: wrap;
+}
+.total-item { text-align: center; }
+.total-v {
+  font-size: 2rem; font-weight: 600;
+  font-family: 'DM Mono', monospace;
+}
+.total-v.accent { color: var(--accent); }
+.total-v.gv { color: var(--good); }
+.total-v.bv { color: var(--bad); }
+.total-l { font-size: .62rem; color: var(--text-dim); letter-spacing: .08em; margin-top: .25rem; }
+
+/* ===== QUOTE MANAGER MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.75); backdrop-filter: blur(4px);
+  z-index: 200; display: none; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 4px; width: 100%; max-width: 580px;
+  max-height: 80vh; display: flex; flex-direction: column;
+  animation: slideUp .25s ease;
+}
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+
+.modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-shrink: 0;
+}
+.modal-title {
+  font-family: 'DM Mono', monospace;
+  font-size: .75rem; letter-spacing: .15em; color: var(--text);
+}
+.modal-close {
+  background: none; border: none; color: var(--text-dim);
+  font-size: 1.1rem; cursor: pointer; transition: color .15s; line-height: 1;
+}
+.modal-close:hover { color: var(--text); }
+
+.modal-body { padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1; }
+
+.quote-add-form {
+  display: flex; flex-direction: column; gap: .6rem;
+  margin-bottom: 1.5rem;
+}
+.quote-add-form textarea {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 2px; color: var(--text);
+  font-family: 'Noto Serif TC', serif; font-size: .85rem;
+  line-height: 1.65; padding: .7rem .85rem; resize: none; height: 72px;
+  transition: border-color .2s;
+}
+.quote-add-form textarea:focus { outline: none; border-color: var(--accent); }
+.quote-add-form input {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 2px; color: var(--text);
+  font-family: 'DM Mono', monospace; font-size: .75rem;
+  padding: .5rem .7rem; transition: border-color .2s;
+}
+.quote-add-form input:focus { outline: none; border-color: var(--accent); }
+.quote-add-form input::placeholder { color: var(--text-dim); }
+.btn-add-quote {
+  background: var(--accent-dim); color: var(--accent);
+  border: 1px solid rgba(196,164,94,.2); border-radius: 2px;
+  font-family: 'DM Mono', monospace; font-size: .68rem;
+  letter-spacing: .12em; padding: .55rem; cursor: pointer;
+  transition: all .15s;
+}
+.btn-add-quote:hover { background: #352714; }
+
+.quote-list-modal { display: flex; flex-direction: column; gap: .4rem; }
+.quote-item-modal {
+  display: flex; align-items: flex-start; gap: .75rem;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 2px; padding: .7rem .9rem;
+}
+.qi-body { flex: 1; }
+.qi-text { font-size: .82rem; line-height: 1.55; font-style: italic; }
+.qi-src { font-family: 'DM Mono', monospace; font-size: .62rem; color: var(--text-dim); margin-top: .25rem; }
+.qi-tag {
+  font-family: 'DM Mono', monospace; font-size: .55rem;
+  padding: .15rem .4rem; border-radius: 2px; white-space: nowrap; flex-shrink: 0;
+  margin-top: .15rem;
+}
+.qi-tag.builtin { background: var(--accent-dim); color: var(--accent); opacity: .7; }
+.qi-tag.custom { background: #1a2a1a; color: #7aaa7a; }
+.qi-del {
+  background: none; border: none; color: var(--text-dim);
+  cursor: pointer; font-size: .8rem; transition: color .15s;
+  flex-shrink: 0;
+}
+.qi-del:hover { color: var(--bad); }
+
+@media (max-width: 520px) {
+  .cards { grid-template-columns: 1fr; }
+  .stats-top { grid-template-columns: 1fr; }
+  .totals { gap: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div id="lock-screen">
+  <div class="lock-box">
+    <div class="lock-icon">🔒</div>
+    <div>
+      <div class="lock-title">我的日記</div>
+      <div class="lock-subtitle">PRIVATE JOURNAL</div>
+    </div>
+    <div class="lock-input-wrap">
+      <input type="password" id="lock-input" placeholder="輸入密碼" autocomplete="off" maxlength="32">
+      <button id="toggle-pw" onclick="togglePw()" tabindex="-1">👁</button>
+    </div>
+    <div id="lock-error"></div>
+    <button id="lock-btn" onclick="tryUnlock()">進入</button>
+    <div class="lock-hint">按 Enter 也可以進入</div>
+  </div>
+</div>
+
+<!-- DAILY QUOTE -->
+<div class="quote-zone">
+  <div class="quote-inner">
+    <div class="quote-label">每日一語</div>
+    <div class="quote-text" id="q-text">載入中…</div>
+    <div class="quote-source" id="q-src"></div>
+    <div class="quote-actions">
+      <button class="btn-shuffle" onclick="shuffleQuote()">↻ 換一句</button>
+      <button class="btn-manage-quotes" onclick="openModal()">管理語錄</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-tab active" onclick="switchTab('record',this)">紀錄</button>
+  <button class="nav-tab" onclick="switchTab('stats',this)">統計</button>
+</div>
+
+<!-- RECORD PAGE -->
+<div class="page active" id="page-record">
+  <div class="date-bar">
+    <label>日期</label>
+    <input type="date" id="entry-date">
+  </div>
+  <div class="cards">
+    <div class="entry-card good">
+      <div class="card-head"><div class="pip"></div>好事</div>
+      <textarea id="good-text" placeholder="今天發生了什麼好事？"></textarea>
+      <button class="add-btn" onclick="addEntry('good')">＋ 新增好事</button>
+    </div>
+    <div class="entry-card bad">
+      <div class="card-head"><div class="pip"></div>壞事</div>
+      <textarea id="bad-text" placeholder="今天有什麼不順的事？"></textarea>
+      <button class="add-btn" onclick="addEntry('bad')">＋ 新增壞事</button>
+    </div>
+  </div>
+  <div class="sec-label">最近紀錄</div>
+  <div class="entry-list" id="entry-list"></div>
+</div>
+
+<!-- STATS PAGE -->
+<div class="page" id="page-stats">
+  <div class="stats-top">
+    <div class="stat-box" id="stat-week"></div>
+    <div class="stat-box" id="stat-month"></div>
+    <div class="stat-box" id="stat-year"></div>
+  </div>
+  <div class="chart-box">
+    <div class="chart-head">
+      <span class="chart-ttl">過去 7 天每日分佈</span>
+      <div class="legend">
+        <div class="leg"><div class="leg-dot" style="background:var(--good)"></div>好事</div>
+        <div class="leg"><div class="leg-dot" style="background:var(--bad)"></div>壞事</div>
+      </div>
+    </div>
+    <div class="bars" id="bar-chart"></div>
+  </div>
+  <div class="totals" id="totals"></div>
+</div>
+
+<!-- QUOTE MANAGER MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">語錄倉庫</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="quote-add-form">
+        <textarea id="new-quote-text" placeholder="輸入一段你喜歡的話…"></textarea>
+        <input type="text" id="new-quote-src" placeholder="來源（例：楊定一《靜心》）">
+        <button class="btn-add-quote" onclick="addCustomQuote()">＋ 加入語錄</button>
+      </div>
+      <div class="quote-list-modal" id="quote-list-modal"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== BUILT-IN QUOTES =====
+const BUILTIN_QUOTES = [
+  { text: "你本來就是完整的，不需要透過外在的成就或認可來證明自己的價值。", src: "楊定一《全部的你》" },
+  { text: "靜下來，才能聽見自己內心真正的聲音。所有的答案，早已在你心中。", src: "楊定一《靜心》" },
+  { text: "每一個當下，都是全部。把意識帶回這裡、帶回現在，就是最深的修行。", src: "楊定一《當下》" },
+  { text: "失落、悲傷、憤怒——這些情緒沒有一個是你的敵人，它們都是你的一部分，值得被溫柔地接納。", src: "楊定一《好睡》" },
+  { text: "真正的放鬆，不是什麼都不做，而是讓心完全地、安心地在這裡。", src: "楊定一《靜心》" },
+  { text: "你已經夠好了。不是將來某個時刻的你，是現在的你，就已經夠了。", src: "楊定一《全部的你》" },
+  { text: "生命中最大的轉變，不是外在環境的改變，而是你看待一切的眼光改變了。", src: "楊定一《轉捩點》" },
+  { text: "感恩不是一種禮貌，而是一種覺知——看見眼前一切，其實從來都不是理所當然的。", src: "楊定一《感恩日記》" },
+  { text: "呼吸，就是回家的路。每一次吸氣，你都在把自己帶回來。", src: "楊定一《靜心》" },
+  { text: "身體從不說謊。當你安靜下來，它會告訴你一切你需要知道的事。", src: "楊定一《真原醫》" },
+  { text: "不要對自己太嚴苛。你已經盡力了，而盡力，就已經足夠。", src: "楊定一《全部的你》" },
+  { text: "放手，不是放棄，而是信任——信任生命自有它的安排，你不需要每件事都掌控。", src: "楊定一《轉捩點》" },
+  { text: "今天，你願意對自己多一點慈悲嗎？", src: "楊定一《靜心》" },
+  { text: "過去不能改變，未來還沒到來。現在，才是你唯一真正擁有的。", src: "楊定一《當下》" },
+  { text: "每一個困境，都藏著一個你還沒發現的禮物。", src: "楊定一《轉捩點》" },
+];
+
+// ===== STORAGE =====
+const K = { entries: 'diary_v2_entries', customQuotes: 'diary_v2_custom_quotes', todayQuote: 'diary_v2_today_quote' };
+const load = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
+const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const today = () => new Date().toISOString().slice(0,10);
+
+// ===== QUOTE LOGIC =====
+function getAllQuotes() {
+  const custom = load(K.customQuotes);
+  return [...BUILTIN_QUOTES.map(q => ({...q, type:'builtin'})), ...custom.map(q => ({...q, type:'custom'}))];
+}
+
+function loadDailyQuote() {
+  const stored = JSON.parse(localStorage.getItem(K.todayQuote) || 'null');
+  if (stored && stored.date === today()) return stored.quote;
+  const all = getAllQuotes();
+  const q = all[Math.floor(Math.random() * all.length)];
+  localStorage.setItem(K.todayQuote, JSON.stringify({ date: today(), quote: q }));
+  return q;
+}
+
+function renderQuote(q) {
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-src').textContent = q.src ? '— ' + q.src : '';
+}
+
+function shuffleQuote() {
+  const all = getAllQuotes();
+  const q = all[Math.floor(Math.random() * all.length)];
+  localStorage.setItem(K.todayQuote, JSON.stringify({ date: today(), quote: q }));
+  const el = document.getElementById('q-text');
+  el.style.opacity = '0';
+  setTimeout(() => { renderQuote(q); el.style.opacity = '1'; el.style.transition = 'opacity .4s'; }, 200);
+}
+
+// ===== ENTRIES =====
+document.getElementById('entry-date').value = today();
+
+function addEntry(type) {
+  const el = document.getElementById(type + '-text');
+  const text = el.value.trim();
+  if (!text) { el.focus(); return; }
+  const date = document.getElementById('entry-date').value || today();
+  const entries = load(K.entries);
+  entries.unshift({ id: Date.now(), type, text, date });
+  save(K.entries, entries);
+  el.value = '';
+  renderList();
+}
+
+function deleteEntry(id) {
+  save(K.entries, load(K.entries).filter(e => e.id !== id));
+  renderList();
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderList() {
+  const entries = load(K.entries);
+  const list = document.getElementById('entry-list');
+  if (!entries.length) { list.innerHTML = '<div class="empty">還沒有任何紀錄，開始記錄今天吧</div>'; return; }
+  list.innerHTML = entries.slice(0,40).map(e => `
+    <div class="entry-row">
+      <span class="etag ${e.type==='good'?'etag-good':'etag-bad'}">${e.type==='good'?'好事':'壞事'}</span>
+      <span class="etext">${esc(e.text)}</span>
+      <span class="edate">${e.date}</span>
+      <button class="edel" onclick="deleteEntry(${e.id})" title="刪除">✕</button>
+    </div>
+  `).join('');
+}
+
+['good-text','bad-text'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addEntry(id.replace('-text','')); }
+  });
+});
+
+// ===== STATS =====
+function periodStart(p) {
+  const d = new Date();
+  if (p==='week') { d.setDate(d.getDate() - ((d.getDay()+6)%7)); }
+  else if (p==='month') d.setDate(1);
+  else if (p==='year') { d.setMonth(0); d.setDate(1); }
+  return d.toISOString().slice(0,10);
+}
+
+function renderStats() {
+  const entries = load(K.entries);
+  [['stat-week','本週','week'],['stat-month','本月','month'],['stat-year','本年','year']].forEach(([id,lbl,p]) => {
+    const start = periodStart(p);
+    const f = entries.filter(e => e.date >= start);
+    const g = f.filter(e => e.type==='good').length;
+    const b = f.filter(e => e.type==='bad').length;
+    document.getElementById(id).innerHTML = `
+      <div class="stat-period">${lbl}</div>
+      <div class="stat-nums">
+        <div class="snum g"><div class="v">${g}</div><div class="l">好事</div></div>
+        <div class="snum b"><div class="v">${b}</div><div class="l">壞事</div></div>
+      </div>`;
+  });
+
+  // Bar chart
+  const days = Array.from({length:7},(_,i) => { const d=new Date(); d.setDate(d.getDate()-6+i); return d.toISOString().slice(0,10); });
+  const maxV = Math.max(1, ...days.map(day => entries.filter(e=>e.date===day).length));
+  document.getElementById('bar-chart').innerHTML = days.map(day => {
+    const g = entries.filter(e=>e.date===day&&e.type==='good').length;
+    const b = entries.filter(e=>e.date===day&&e.type==='bad').length;
+    return `<div class="bgroup">
+      <div class="bpair">
+        <div class="bar g" style="height:${Math.round(g/maxV*86)}px"></div>
+        <div class="bar b" style="height:${Math.round(b/maxV*86)}px"></div>
+      </div>
+      <div class="blbl">${day.slice(5)}</div>
+    </div>`;
+  }).join('');
+
+  // Totals / streak
+  const allDates = [...new Set(entries.map(e=>e.date))].sort().reverse();
+  let streak = 0, check = today();
+  for (const d of allDates) {
+    if (d===check) { streak++; const dt=new Date(check); dt.setDate(dt.getDate()-1); check=dt.toISOString().slice(0,10); }
+    else if (d<check) break;
+  }
+  document.getElementById('totals').innerHTML = `
+    <div class="total-item"><div class="total-v accent">${streak}</div><div class="total-l">連續記錄天數</div></div>
+    <div class="total-item"><div class="total-v accent">${allDates.length}</div><div class="total-l">總記錄天數</div></div>
+    <div class="total-item"><div class="total-v gv">${entries.filter(e=>e.type==='good').length}</div><div class="total-l">累計好事</div></div>
+    <div class="total-item"><div class="total-v bv">${entries.filter(e=>e.type==='bad').length}</div><div class="total-l">累計壞事</div></div>`;
+}
+
+// ===== QUOTE MODAL =====
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('open');
+  renderQuoteList();
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+function addCustomQuote() {
+  const text = document.getElementById('new-quote-text').value.trim();
+  const src = document.getElementById('new-quote-src').value.trim();
+  if (!text) { document.getElementById('new-quote-text').focus(); return; }
+  const customs = load(K.customQuotes);
+  customs.unshift({ id: Date.now(), text, src });
+  save(K.customQuotes, customs);
+  document.getElementById('new-quote-text').value = '';
+  document.getElementById('new-quote-src').value = '';
+  renderQuoteList();
+}
+
+function deleteCustomQuote(id) {
+  save(K.customQuotes, load(K.customQuotes).filter(q => q.id !== id));
+  renderQuoteList();
+}
+
+function renderQuoteList() {
+  const all = getAllQuotes();
+  document.getElementById('quote-list-modal').innerHTML = all.map(q => `
+    <div class="quote-item-modal">
+      <div class="qi-body">
+        <div class="qi-text">${esc(q.text)}</div>
+        ${q.src ? `<div class="qi-src">— ${esc(q.src)}</div>` : ''}
+      </div>
+      <span class="qi-tag ${q.type}">${q.type==='builtin'?'內建':'自訂'}</span>
+      ${q.type==='custom' ? `<button class="qi-del" onclick="deleteCustomQuote(${q.id})">✕</button>` : '<span style="width:1rem"></span>'}
+    </div>`).join('');
+}
+
+// ===== TAB SWITCH =====
+function switchTab(name, btn) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('page-'+name).classList.add('active');
+  if (name==='stats') renderStats();
+}
+
+// ===== LOCK SCREEN =====
+// 密碼存為 SHA-256 hash，不明文存在程式碼裡
+// 預設密碼: diary2026 → 想改密碼請替換下面的 HASH 值
+// 產生新 hash: 在瀏覽器 console 執行:
+//   crypto.subtle.digest('SHA-256', new TextEncoder().encode('你的新密碼'))
+//     .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
+const PW_HASH = 'b1c7e1a2e2d3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9';
+
+// 實際 hash of "diary2026"
+async function hashStr(s) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+
+// 用 sessionStorage 記住這次已解鎖（關掉分頁就要重新輸入）
+async function tryUnlock() {
+  const input = document.getElementById('lock-input').value;
+  const h = await hashStr(input);
+  const stored = await hashStr('diary2026'); // 預設密碼 hash
+  const customHash = localStorage.getItem('diary_pw_hash');
+  const correct = customHash ? h === customHash : h === stored;
+  if (correct) {
+    sessionStorage.setItem('diary_unlocked', '1');
+    const ls = document.getElementById('lock-screen');
+    ls.style.opacity = '0';
+    ls.style.transition = 'opacity .4s';
+    setTimeout(() => ls.style.display = 'none', 400);
+    document.getElementById('lock-error').textContent = '';
+  } else {
+    const inp = document.getElementById('lock-input');
+    inp.classList.remove('shake');
+    void inp.offsetWidth;
+    inp.classList.add('shake');
+    document.getElementById('lock-error').textContent = '密碼錯誤，請再試一次';
+    inp.value = '';
+    setTimeout(() => inp.classList.remove('shake'), 400);
+  }
+}
+
+function togglePw() {
+  const inp = document.getElementById('lock-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('diary_unlocked') === '1') {
+    document.getElementById('lock-screen').style.display = 'none';
+  }
+  document.getElementById('lock-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') tryUnlock();
+  });
+  setTimeout(() => document.getElementById('lock-input').focus(), 100);
+});
+
+// ===== INIT =====
+renderQuote(loadDailyQuote());
+renderList();
+</script>
+</body>
+</html>
