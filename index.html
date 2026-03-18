@@ -3,488 +3,368 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>我的日記</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<title>好事壞事紀錄表</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-/* ===== LOCK SCREEN ===== */
-#lock-screen {
-  position: fixed; inset: 0; z-index: 9999;
-  background: #0d0c0a;
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column;
-}
-#lock-screen::before {
-  content: '';
-  position: absolute; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none;
-}
-.lock-box {
-  position: relative; text-align: center;
-  display: flex; flex-direction: column; align-items: center; gap: 1.5rem;
-  animation: fadeInUp .5s ease;
-}
-@keyframes fadeInUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
-.lock-icon {
-  font-size: 2rem; opacity: .4;
-  animation: pulse 3s ease-in-out infinite;
-}
-@keyframes pulse { 0%,100% { opacity:.35; } 50% { opacity:.6; } }
-.lock-title {
-  font-family: 'Noto Serif TC', serif;
-  font-size: 1.1rem; color: #c4a45e; letter-spacing: .12em; font-weight: 300;
-}
-.lock-subtitle {
-  font-family: 'DM Mono', monospace;
-  font-size: .6rem; letter-spacing: .2em; color: #6b6660;
-  margin-top: -.75rem;
-}
-.lock-input-wrap { position: relative; }
-#lock-input {
-  background: #161512; border: 1px solid #2a2824;
-  border-radius: 3px; color: #e2ddd4;
-  font-family: 'DM Mono', monospace; font-size: .9rem;
-  letter-spacing: .2em; padding: .75rem 3rem .75rem 1.25rem;
-  width: 220px; text-align: center;
-  transition: border-color .2s; outline: none;
-}
-#lock-input:focus { border-color: #c4a45e; }
-#lock-input.shake {
-  animation: shake .35s ease;
-  border-color: #c97b6a !important;
-}
-@keyframes shake {
-  0%,100% { transform: translateX(0); }
-  20% { transform: translateX(-8px); }
-  40% { transform: translateX(8px); }
-  60% { transform: translateX(-6px); }
-  80% { transform: translateX(6px); }
-}
-#toggle-pw {
-  position: absolute; right: .75rem; top: 50%; transform: translateY(-50%);
-  background: none; border: none; color: #6b6660; cursor: pointer;
-  font-size: .85rem; line-height: 1; transition: color .15s; padding: 0;
-}
-#toggle-pw:hover { color: #9e9890; }
-#lock-btn {
-  background: #2a2010; color: #c4a45e;
-  border: 1px solid rgba(196,164,94,.2); border-radius: 2px;
-  font-family: 'DM Mono', monospace; font-size: .68rem;
-  letter-spacing: .15em; padding: .6rem 2rem; cursor: pointer;
-  transition: all .15s; width: 220px;
-}
-#lock-btn:hover { background: #352714; }
-.lock-hint {
-  font-family: 'DM Mono', monospace;
-  font-size: .58rem; color: #4a4845; letter-spacing: .1em;
-}
-#lock-error {
-  font-family: 'DM Mono', monospace;
-  font-size: .65rem; color: #c97b6a; letter-spacing: .1em;
-  height: .9rem; transition: opacity .2s;
-}
-
+/* ============ RESET & VARS ============ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg: #0d0c0a;
-  --surface: #161512;
-  --surface2: #1e1c18;
-  --surface3: #252320;
-  --border: #2a2824;
-  --border2: #343230;
-  --good: #8fb87a;
-  --good-dim: #1e2d17;
-  --good-glow: rgba(143,184,122,0.12);
-  --bad: #c97b6a;
-  --bad-dim: #321a16;
-  --bad-glow: rgba(201,123,106,0.12);
-  --text: #e2ddd4;
-  --text-dim: #6b6660;
-  --text-mid: #9e9890;
-  --accent: #c4a45e;
-  --accent-dim: #2a2010;
-  --accent-glow: rgba(196,164,94,0.15);
+  --bg: #0d0c0a; --surface: #161512; --surface2: #1e1c18; --surface3: #252320;
+  --border: #2a2824; --border2: #343230;
+  --good: #8fb87a; --good-dim: #1e2d17;
+  --bad: #c97b6a; --bad-dim: #321a16;
+  --text: #e2ddd4; --text-dim: #6b6660; --text-mid: #9e9890;
+  --accent: #c4a45e; --accent-dim: #2a2010;
   --quote-bg: #13110e;
 }
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 html { scroll-behavior: smooth; }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Noto Serif TC', serif;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* Subtle noise texture */
+body { background: var(--bg); color: var(--text); font-family: 'Noto Serif TC', serif; min-height: 100vh; }
 body::after {
-  content: '';
-  position: fixed; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none; z-index: 9998;
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9998; opacity: .5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
 }
 
-/* ===== DAILY QUOTE ===== */
-.quote-zone {
-  background: var(--quote-bg);
-  border-bottom: 1px solid var(--border);
-  padding: 2.5rem 2rem 2rem;
-  position: relative;
-  overflow: hidden;
-}
-.quote-zone::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  opacity: .4;
-}
-.quote-inner { max-width: 680px; margin: 0 auto; }
+/* ============ UTILITY ============ */
+.hidden { display: none !important; }
+input, textarea, button { font-family: inherit; }
 
-.quote-label {
-  font-family: 'DM Mono', monospace;
-  font-size: .6rem; letter-spacing: .25em;
-  color: var(--accent); opacity: .7;
-  margin-bottom: 1rem;
-  display: flex; align-items: center; gap: .75rem;
+/* ============ AUTH SCREEN ============ */
+#auth-screen {
+  position: fixed; inset: 0; z-index: 500;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
 }
-.quote-label::after {
-  content: '';
-  flex: 1; height: 1px;
-  background: linear-gradient(90deg, var(--border2), transparent);
+.auth-box {
+  width: 100%; max-width: 360px; padding: 0 1.5rem;
+  animation: fadeUp .45s ease;
 }
-
-.quote-text {
-  font-family: 'Lora', serif;
-  font-size: 1.1rem; line-height: 1.8;
-  color: var(--text); font-style: italic;
-  letter-spacing: .02em;
-  position: relative; padding-left: 1.25rem;
+@keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+.auth-logo {
+  text-align: center; margin-bottom: 2.25rem;
 }
-.quote-text::before {
-  content: '"';
-  position: absolute; left: 0; top: -.1rem;
-  font-size: 2rem; color: var(--accent); opacity: .4;
-  font-family: 'Lora', serif; line-height: 1;
+.auth-logo .icon { font-size: 1.8rem; opacity: .35; display: block; margin-bottom: .75rem; }
+.auth-logo h1 {
+  font-family: 'Noto Serif TC', serif; font-weight: 300;
+  font-size: 1.3rem; letter-spacing: .18em; color: var(--accent);
 }
-.quote-source {
-  margin-top: .75rem;
-  font-size: .75rem; color: var(--text-dim);
-  font-family: 'DM Mono', monospace; letter-spacing: .08em;
-  padding-left: 1.25rem;
+.auth-logo p {
+  font-family: 'DM Mono', monospace; font-size: .58rem;
+  letter-spacing: .22em; color: var(--text-dim); margin-top: .3rem;
 }
-
-.quote-actions {
-  display: flex; gap: .75rem; margin-top: 1.25rem; padding-left: 1.25rem;
-  align-items: center;
+.auth-tabs {
+  display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
 }
-.btn-shuffle {
-  background: none; border: 1px solid var(--border2);
-  color: var(--text-mid); padding: .35rem .9rem;
-  border-radius: 2px; font-family: 'DM Mono', monospace;
-  font-size: .65rem; letter-spacing: .12em; cursor: pointer;
-  transition: all .2s;
+.auth-tab {
+  flex: 1; padding: .65rem; text-align: center;
+  font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .15em;
+  color: var(--text-dim); cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .2s;
 }
-.btn-shuffle:hover { border-color: var(--accent); color: var(--accent); }
-.btn-manage-quotes {
-  background: none; border: none;
-  color: var(--text-dim); font-family: 'DM Mono', monospace;
-  font-size: .65rem; letter-spacing: .1em; cursor: pointer;
-  text-decoration: underline; text-underline-offset: 3px;
+.auth-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.auth-form { display: flex; flex-direction: column; gap: .75rem; }
+.auth-form input {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 2px; color: var(--text);
+  font-family: 'DM Mono', monospace; font-size: .82rem;
+  padding: .7rem 1rem; transition: border-color .2s; outline: none;
+}
+.auth-form input:focus { border-color: var(--accent); }
+.auth-form input::placeholder { color: var(--text-dim); }
+.auth-submit {
+  padding: .7rem; background: var(--accent-dim); color: var(--accent);
+  border: 1px solid rgba(196,164,94,.25); border-radius: 2px; cursor: pointer;
+  font-family: 'DM Mono', monospace; font-size: .7rem; letter-spacing: .15em;
+  transition: all .15s; margin-top: .25rem;
+}
+.auth-submit:hover { background: #352714; }
+.auth-submit:disabled { opacity: .5; cursor: not-allowed; }
+.auth-msg {
+  font-family: 'DM Mono', monospace; font-size: .65rem;
+  text-align: center; min-height: 1rem; letter-spacing: .08em;
   transition: color .2s;
 }
-.btn-manage-quotes:hover { color: var(--accent); }
+.auth-msg.err { color: var(--bad); }
+.auth-msg.ok { color: var(--good); }
 
-/* ===== NAV ===== */
+/* ============ WEEKLY EGG OVERLAY ============ */
+#egg-overlay {
+  position: fixed; inset: 0; z-index: 400;
+  background: rgba(13,12,10,.96); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 0; padding: 2rem;
+}
+.egg-inner { text-align: center; max-width: 480px; animation: fadeUp .6s ease; }
+.egg-week {
+  font-family: 'DM Mono', monospace; font-size: .62rem;
+  letter-spacing: .25em; color: var(--text-dim); margin-bottom: 1.5rem;
+}
+.egg-count {
+  font-size: 5rem; font-weight: 700; color: var(--good);
+  font-family: 'DM Mono', monospace; line-height: 1;
+  text-shadow: 0 0 40px rgba(143,184,122,.25);
+}
+.egg-label {
+  font-size: 1rem; color: var(--text-mid);
+  letter-spacing: .12em; margin: .5rem 0 2.5rem;
+}
+.egg-divider {
+  width: 40px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  margin: 0 auto 2rem;
+}
+.egg-quote {
+  font-family: 'Lora', serif; font-size: 1rem;
+  line-height: 1.85; font-style: italic;
+  color: var(--text); position: relative; padding: 0 1rem;
+}
+.egg-quote::before {
+  content: '"'; position: absolute; left: 0; top: -.2rem;
+  font-size: 2rem; color: var(--accent); opacity: .35; line-height: 1;
+}
+.egg-src {
+  font-family: 'DM Mono', monospace; font-size: .65rem;
+  color: var(--text-dim); margin-top: .75rem; letter-spacing: .08em;
+}
+.egg-close {
+  margin-top: 2.5rem; background: none;
+  border: 1px solid var(--border2); color: var(--text-mid);
+  border-radius: 2px; padding: .55rem 2rem;
+  font-family: 'DM Mono', monospace; font-size: .65rem;
+  letter-spacing: .15em; cursor: pointer; transition: all .2s;
+}
+.egg-close:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ============ QUOTE ZONE ============ */
+.quote-zone {
+  background: var(--quote-bg); border-bottom: 1px solid var(--border);
+  padding: 2.25rem 2rem 1.75rem; position: relative; overflow: hidden;
+}
+.quote-zone::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .35;
+}
+.quote-inner { max-width: 680px; }
+.quote-label {
+  font-family: 'DM Mono', monospace; font-size: .58rem; letter-spacing: .25em;
+  color: var(--accent); opacity: .65; margin-bottom: .9rem;
+  display: flex; align-items: center; gap: .75rem;
+}
+.quote-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
+.quote-text {
+  font-family: 'Lora', serif; font-size: 1rem; line-height: 1.8;
+  font-style: italic; letter-spacing: .02em;
+  position: relative; padding-left: 1.1rem;
+  transition: opacity .35s;
+}
+.quote-text::before {
+  content: '"'; position: absolute; left: 0; top: -.1rem;
+  font-size: 1.8rem; color: var(--accent); opacity: .35; line-height: 1;
+}
+.quote-src { font-family: 'DM Mono', monospace; font-size: .68rem; color: var(--text-dim); padding-left: 1.1rem; margin-top: .5rem; }
+.quote-actions { display: flex; gap: .75rem; margin-top: 1rem; padding-left: 1.1rem; align-items: center; }
+.btn-ghost {
+  background: none; border: 1px solid var(--border2); color: var(--text-mid);
+  padding: .3rem .85rem; border-radius: 2px;
+  font-family: 'DM Mono', monospace; font-size: .62rem; letter-spacing: .12em;
+  cursor: pointer; transition: all .2s;
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-link {
+  background: none; border: none; color: var(--text-dim);
+  font-family: 'DM Mono', monospace; font-size: .62rem; letter-spacing: .1em;
+  cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+  transition: color .2s;
+}
+.btn-link:hover { color: var(--accent); }
+
+/* ============ NAV ============ */
 .nav {
-  border-bottom: 1px solid var(--border);
-  padding: 0 2rem;
-  display: flex; gap: 0;
-  background: var(--surface);
+  border-bottom: 1px solid var(--border); padding: 0 2rem;
+  display: flex; background: var(--surface);
   position: sticky; top: 0; z-index: 100;
 }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 1rem; }
+.nav-user {
+  font-family: 'DM Mono', monospace; font-size: .62rem;
+  color: var(--text-dim); letter-spacing: .08em;
+}
+.nav-logout {
+  background: none; border: none; color: var(--text-dim);
+  font-family: 'DM Mono', monospace; font-size: .62rem;
+  cursor: pointer; transition: color .15s; letter-spacing: .08em;
+}
+.nav-logout:hover { color: var(--bad); }
 .nav-tab {
-  padding: .9rem 1.4rem;
-  font-family: 'DM Mono', monospace;
-  font-size: .7rem; letter-spacing: .14em;
-  color: var(--text-dim); cursor: pointer;
-  border: none; background: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px; transition: all .2s;
+  padding: .85rem 1.25rem; font-family: 'DM Mono', monospace;
+  font-size: .68rem; letter-spacing: .14em; color: var(--text-dim);
+  cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .2s;
 }
 .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .nav-tab:hover:not(.active) { color: var(--text-mid); }
 
-/* ===== PAGES ===== */
+/* ============ PAGES ============ */
 .page { display: none; padding: 2rem; max-width: 720px; }
 .page.active { display: block; }
 
-/* ===== RECORD PAGE ===== */
-.date-bar {
-  display: flex; align-items: center; gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-.date-bar label {
-  font-family: 'DM Mono', monospace;
-  font-size: .65rem; letter-spacing: .15em; color: var(--text-dim);
-}
+/* ============ RECORD PAGE ============ */
+.date-bar { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+.date-bar label { font-family: 'DM Mono', monospace; font-size: .62rem; letter-spacing: .15em; color: var(--text-dim); }
 .date-bar input[type=date] {
   background: var(--surface2); border: 1px solid var(--border);
   color: var(--text); padding: .4rem .7rem; border-radius: 2px;
-  font-family: 'DM Mono', monospace; font-size: .78rem;
+  font-family: 'DM Mono', monospace; font-size: .78rem; outline: none;
   transition: border-color .2s;
 }
-.date-bar input[type=date]:focus { outline: none; border-color: var(--accent); }
+.date-bar input[type=date]:focus { border-color: var(--accent); }
 
 .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-
 .entry-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 3px; padding: 1.25rem;
-  transition: border-color .2s;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 3px; padding: 1.25rem; transition: border-color .2s;
 }
 .entry-card.good { border-top: 2px solid var(--good); }
 .entry-card.bad { border-top: 2px solid var(--bad); }
-
 .card-head {
   display: flex; align-items: center; gap: .5rem;
-  font-family: 'DM Mono', monospace;
-  font-size: .68rem; letter-spacing: .18em;
-  margin-bottom: 1rem;
+  font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .18em;
+  margin-bottom: .9rem;
 }
-.card-head .pip {
-  width: 7px; height: 7px; border-radius: 50%;
-}
-.good .pip { background: var(--good); box-shadow: 0 0 6px var(--good-glow); }
-.bad .pip { background: var(--bad); box-shadow: 0 0 6px var(--bad-glow); }
-
+.card-head .pip { width: 6px; height: 6px; border-radius: 50%; }
+.good .pip { background: var(--good); }
+.bad .pip { background: var(--bad); }
 .entry-card textarea {
-  width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  color: var(--text); font-family: 'Noto Serif TC', serif;
-  font-size: .83rem; line-height: 1.65;
-  padding: .7rem .85rem; resize: none; height: 88px;
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 2px; color: var(--text);
+  font-family: 'Noto Serif TC', serif; font-size: .83rem; line-height: 1.65;
+  padding: .65rem .8rem; resize: none; height: 84px; outline: none;
   transition: border-color .2s;
 }
-.entry-card textarea:focus { outline: none; border-color: var(--border2); }
+.entry-card textarea:focus { border-color: var(--border2); }
 .entry-card textarea::placeholder { color: var(--text-dim); font-style: italic; }
-
 .add-btn {
-  margin-top: .75rem; width: 100%;
-  padding: .55rem; border-radius: 2px; border: none;
-  font-family: 'DM Mono', monospace; font-size: .68rem;
-  letter-spacing: .1em; cursor: pointer; transition: all .15s;
+  margin-top: .7rem; width: 100%; padding: .52rem; border-radius: 2px; border: none;
+  font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .1em;
+  cursor: pointer; transition: all .15s;
 }
 .good .add-btn { background: var(--good-dim); color: var(--good); }
 .good .add-btn:hover { background: #263a1c; }
 .bad .add-btn { background: var(--bad-dim); color: var(--bad); }
 .bad .add-btn:hover { background: #40221d; }
 
-/* entry list */
 .sec-label {
-  font-family: 'DM Mono', monospace;
-  font-size: .62rem; letter-spacing: .22em;
-  color: var(--text-dim); margin: 2rem 0 .85rem;
+  font-family: 'DM Mono', monospace; font-size: .6rem; letter-spacing: .22em;
+  color: var(--text-dim); margin: 2rem 0 .8rem;
 }
-
 .entry-list { display: flex; flex-direction: column; gap: .4rem; }
-
 .entry-row {
-  display: flex; align-items: flex-start; gap: .75rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 2px; padding: .7rem .9rem;
+  display: flex; align-items: flex-start; gap: .7rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 2px; padding: .65rem .85rem;
   transition: border-color .15s;
-  animation: fadeIn .25s ease;
+  animation: fadeUp .2s ease;
 }
 .entry-row:hover { border-color: var(--border2); }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-
 .etag {
-  font-family: 'DM Mono', monospace;
-  font-size: .6rem; letter-spacing: .1em;
-  padding: .18rem .5rem; border-radius: 2px;
-  white-space: nowrap; margin-top: .15rem; flex-shrink: 0;
+  font-family: 'DM Mono', monospace; font-size: .58rem; letter-spacing: .1em;
+  padding: .16rem .45rem; border-radius: 2px; white-space: nowrap;
+  margin-top: .12rem; flex-shrink: 0;
 }
 .etag-good { background: var(--good-dim); color: var(--good); }
 .etag-bad { background: var(--bad-dim); color: var(--bad); }
-
-.etext { font-size: .83rem; line-height: 1.55; flex: 1; }
-.edate {
-  font-family: 'DM Mono', monospace;
-  font-size: .65rem; color: var(--text-dim);
-  white-space: nowrap; flex-shrink: 0;
-}
-.edel {
-  background: none; border: none;
-  color: var(--text-dim); cursor: pointer;
-  font-size: .8rem; padding: 0 .2rem; flex-shrink: 0;
-  transition: color .15s; line-height: 1;
-}
+.etext { font-size: .82rem; line-height: 1.55; flex: 1; }
+.edate { font-family: 'DM Mono', monospace; font-size: .62rem; color: var(--text-dim); white-space: nowrap; flex-shrink: 0; }
+.edel { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: .78rem; padding: 0 .2rem; flex-shrink: 0; transition: color .15s; }
 .edel:hover { color: var(--bad); }
+.loading-row { color: var(--text-dim); font-size: .82rem; padding: 1.5rem 0; text-align: center; font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .1em; }
 
-.empty { color: var(--text-dim); font-size: .83rem; padding: 2rem 0; text-align: center; letter-spacing: .05em; }
-
-/* ===== STATS PAGE ===== */
-.stats-top {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: .85rem;
-  margin-bottom: 1.75rem;
-}
-.stat-box {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 3px; padding: 1.1rem 1.25rem;
-}
-.stat-period {
-  font-family: 'DM Mono', monospace;
-  font-size: .6rem; letter-spacing: .2em; color: var(--text-dim);
-  margin-bottom: .8rem;
-}
+/* ============ STATS PAGE ============ */
+.stats-top { display: grid; grid-template-columns: repeat(3, 1fr); gap: .85rem; margin-bottom: 1.5rem; }
+.stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 1.1rem 1.2rem; }
+.stat-period { font-family: 'DM Mono', monospace; font-size: .58rem; letter-spacing: .2em; color: var(--text-dim); margin-bottom: .75rem; }
 .stat-nums { display: flex; gap: 1.25rem; }
 .snum { text-align: center; }
-.snum .v {
-  font-size: 1.85rem; font-weight: 600; line-height: 1;
-  font-family: 'DM Mono', monospace;
-}
+.snum .v { font-size: 1.75rem; font-weight: 600; line-height: 1; font-family: 'DM Mono', monospace; }
 .snum.g .v { color: var(--good); }
 .snum.b .v { color: var(--bad); }
-.snum .l { font-size: .62rem; color: var(--text-dim); margin-top: .3rem; letter-spacing: .08em; }
+.snum .l { font-size: .58rem; color: var(--text-dim); margin-top: .25rem; letter-spacing: .08em; }
 
-.chart-box {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 3px; padding: 1.35rem 1.5rem;
-  margin-bottom: 1rem;
-}
-.chart-head {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 1.25rem;
-}
-.chart-ttl {
-  font-family: 'DM Mono', monospace;
-  font-size: .65rem; letter-spacing: .18em; color: var(--text-dim);
-}
+.chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 1.25rem 1.4rem; margin-bottom: .85rem; }
+.chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.1rem; }
+.chart-ttl { font-family: 'DM Mono', monospace; font-size: .62rem; letter-spacing: .18em; color: var(--text-dim); }
 .legend { display: flex; gap: 1rem; }
-.leg {
-  display: flex; align-items: center; gap: .35rem;
-  font-family: 'DM Mono', monospace; font-size: .6rem; color: var(--text-dim);
-}
+.leg { display: flex; align-items: center; gap: .35rem; font-family: 'DM Mono', monospace; font-size: .58rem; color: var(--text-dim); }
 .leg-dot { width: 5px; height: 5px; border-radius: 50%; }
-
-.bars { display: flex; align-items: flex-end; gap: .3rem; height: 110px; }
+.bars { display: flex; align-items: flex-end; gap: .3rem; height: 100px; }
 .bgroup { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.bpair { display: flex; align-items: flex-end; gap: 2px; width: 100%; height: 90px; }
-.bar {
-  flex: 1; border-radius: 2px 2px 0 0; min-height: 2px;
-  transition: height .5s cubic-bezier(.4,0,.2,1);
-}
+.bpair { display: flex; align-items: flex-end; gap: 2px; width: 100%; height: 84px; }
+.bar { flex: 1; border-radius: 2px 2px 0 0; min-height: 2px; transition: height .45s cubic-bezier(.4,0,.2,1); }
 .bar.g { background: var(--good); opacity: .8; }
 .bar.b { background: var(--bad); opacity: .8; }
-.blbl { font-family: 'DM Mono', monospace; font-size: .55rem; color: var(--text-dim); margin-top: .2rem; }
+.blbl { font-family: 'DM Mono', monospace; font-size: .52rem; color: var(--text-dim); margin-top: .2rem; }
 
-.totals {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 3px; padding: 1.1rem 1.5rem;
-  display: flex; gap: 2rem; flex-wrap: wrap;
-}
+.totals { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 1.1rem 1.4rem; display: flex; gap: 2rem; flex-wrap: wrap; }
 .total-item { text-align: center; }
-.total-v {
-  font-size: 2rem; font-weight: 600;
-  font-family: 'DM Mono', monospace;
-}
-.total-v.accent { color: var(--accent); }
+.total-v { font-size: 1.85rem; font-weight: 600; font-family: 'DM Mono', monospace; }
+.total-v.ac { color: var(--accent); }
 .total-v.gv { color: var(--good); }
 .total-v.bv { color: var(--bad); }
-.total-l { font-size: .62rem; color: var(--text-dim); letter-spacing: .08em; margin-top: .25rem; }
+.total-l { font-size: .6rem; color: var(--text-dim); letter-spacing: .08em; margin-top: .2rem; }
 
-/* ===== QUOTE MANAGER MODAL ===== */
+/* ============ QUOTE MODAL ============ */
 .modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.75); backdrop-filter: blur(4px);
-  z-index: 200; display: none; align-items: center; justify-content: center;
-  padding: 1rem;
+  position: fixed; inset: 0; background: rgba(0,0,0,.75); backdrop-filter: blur(4px);
+  z-index: 300; display: none; align-items: center; justify-content: center; padding: 1rem;
 }
 .modal-overlay.open { display: flex; }
-
 .modal {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 4px; width: 100%; max-width: 580px;
-  max-height: 80vh; display: flex; flex-direction: column;
-  animation: slideUp .25s ease;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 4px; width: 100%; max-width: 560px; max-height: 80vh;
+  display: flex; flex-direction: column; animation: fadeUp .25s ease;
 }
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
-
 .modal-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  display: flex; justify-content: space-between; align-items: center;
-  flex-shrink: 0;
+  padding: 1.1rem 1.4rem; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
 }
-.modal-title {
-  font-family: 'DM Mono', monospace;
-  font-size: .75rem; letter-spacing: .15em; color: var(--text);
-}
-.modal-close {
-  background: none; border: none; color: var(--text-dim);
-  font-size: 1.1rem; cursor: pointer; transition: color .15s; line-height: 1;
-}
+.modal-title { font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .15em; }
+.modal-close { background: none; border: none; color: var(--text-dim); font-size: 1rem; cursor: pointer; transition: color .15s; }
 .modal-close:hover { color: var(--text); }
-
-.modal-body { padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1; }
-
-.quote-add-form {
-  display: flex; flex-direction: column; gap: .6rem;
-  margin-bottom: 1.5rem;
-}
-.quote-add-form textarea {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 2px; color: var(--text);
-  font-family: 'Noto Serif TC', serif; font-size: .85rem;
-  line-height: 1.65; padding: .7rem .85rem; resize: none; height: 72px;
+.modal-body { padding: 1.25rem 1.4rem; overflow-y: auto; flex: 1; }
+.q-add-form { display: flex; flex-direction: column; gap: .6rem; margin-bottom: 1.4rem; }
+.q-add-form textarea {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 2px;
+  color: var(--text); font-family: 'Noto Serif TC', serif; font-size: .83rem;
+  line-height: 1.65; padding: .65rem .8rem; resize: none; height: 68px; outline: none;
   transition: border-color .2s;
 }
-.quote-add-form textarea:focus { outline: none; border-color: var(--accent); }
-.quote-add-form input {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 2px; color: var(--text);
-  font-family: 'DM Mono', monospace; font-size: .75rem;
-  padding: .5rem .7rem; transition: border-color .2s;
+.q-add-form textarea:focus { border-color: var(--accent); }
+.q-add-form input {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 2px;
+  color: var(--text); font-family: 'DM Mono', monospace; font-size: .75rem;
+  padding: .48rem .7rem; outline: none; transition: border-color .2s;
 }
-.quote-add-form input:focus { outline: none; border-color: var(--accent); }
-.quote-add-form input::placeholder { color: var(--text-dim); }
-.btn-add-quote {
+.q-add-form input:focus { border-color: var(--accent); }
+.q-add-form input::placeholder { color: var(--text-dim); }
+.btn-add-q {
   background: var(--accent-dim); color: var(--accent);
   border: 1px solid rgba(196,164,94,.2); border-radius: 2px;
-  font-family: 'DM Mono', monospace; font-size: .68rem;
-  letter-spacing: .12em; padding: .55rem; cursor: pointer;
-  transition: all .15s;
+  font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .12em;
+  padding: .52rem; cursor: pointer; transition: all .15s;
 }
-.btn-add-quote:hover { background: #352714; }
-
-.quote-list-modal { display: flex; flex-direction: column; gap: .4rem; }
-.quote-item-modal {
-  display: flex; align-items: flex-start; gap: .75rem;
+.btn-add-q:hover { background: #352714; }
+.q-list { display: flex; flex-direction: column; gap: .4rem; }
+.qi {
+  display: flex; align-items: flex-start; gap: .7rem;
   background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 2px; padding: .7rem .9rem;
+  border-radius: 2px; padding: .65rem .85rem;
 }
 .qi-body { flex: 1; }
 .qi-text { font-size: .82rem; line-height: 1.55; font-style: italic; }
-.qi-src { font-family: 'DM Mono', monospace; font-size: .62rem; color: var(--text-dim); margin-top: .25rem; }
-.qi-tag {
-  font-family: 'DM Mono', monospace; font-size: .55rem;
-  padding: .15rem .4rem; border-radius: 2px; white-space: nowrap; flex-shrink: 0;
-  margin-top: .15rem;
-}
+.qi-src { font-family: 'DM Mono', monospace; font-size: .6rem; color: var(--text-dim); margin-top: .22rem; }
+.qi-tag { font-family: 'DM Mono', monospace; font-size: .52rem; padding: .14rem .38rem; border-radius: 2px; white-space: nowrap; flex-shrink: 0; margin-top: .1rem; }
 .qi-tag.builtin { background: var(--accent-dim); color: var(--accent); opacity: .7; }
 .qi-tag.custom { background: #1a2a1a; color: #7aaa7a; }
-.qi-del {
-  background: none; border: none; color: var(--text-dim);
-  cursor: pointer; font-size: .8rem; transition: color .15s;
-  flex-shrink: 0;
-}
+.qi-del { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: .78rem; transition: color .15s; flex-shrink: 0; }
 .qi-del:hover { color: var(--bad); }
 
 @media (max-width: 520px) {
@@ -496,44 +376,67 @@ body::after {
 </head>
 <body>
 
-<!-- LOCK SCREEN -->
-<div id="lock-screen">
-  <div class="lock-box">
-    <div class="lock-icon">🔒</div>
-    <div>
-      <div class="lock-title">我的日記</div>
-      <div class="lock-subtitle">PRIVATE JOURNAL</div>
+<!-- ======== AUTH SCREEN ======== -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <span class="icon">📖</span>
+      <h1>好事壞事紀錄表</h1>
+      <p>GOOD · BAD · RECORD</p>
     </div>
-    <div class="lock-input-wrap">
-      <input type="password" id="lock-input" placeholder="輸入密碼" autocomplete="off" maxlength="32">
-      <button id="toggle-pw" onclick="togglePw()" tabindex="-1">👁</button>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login',this)">登入</button>
+      <button class="auth-tab" onclick="switchAuthTab('register',this)">註冊</button>
     </div>
-    <div id="lock-error"></div>
-    <button id="lock-btn" onclick="tryUnlock()">進入</button>
-    <div class="lock-hint">按 Enter 也可以進入</div>
+    <div class="auth-form">
+      <input type="text" id="auth-username" placeholder="帳號名稱" autocomplete="username" maxlength="30">
+      <div style="position:relative">
+        <input type="password" id="auth-password" placeholder="密碼" autocomplete="current-password" maxlength="64" style="width:100%;padding-right:2.5rem">
+        <button onclick="toggleAuthPw()" style="position:absolute;right:.7rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:.82rem" tabindex="-1">👁</button>
+      </div>
+      <div class="auth-msg" id="auth-msg"></div>
+      <button class="auth-submit" id="auth-btn" onclick="handleAuth()">登入</button>
+    </div>
   </div>
 </div>
 
-<!-- DAILY QUOTE -->
+<!-- ======== WEEKLY EGG ======== -->
+<div id="egg-overlay" class="hidden">
+  <div class="egg-inner">
+    <div class="egg-week" id="egg-week-label"></div>
+    <div class="egg-count" id="egg-count">0</div>
+    <div class="egg-label">件好事 ✦ 這週</div>
+    <div class="egg-divider"></div>
+    <div class="egg-quote" id="egg-quote-text"></div>
+    <div class="egg-src" id="egg-quote-src"></div>
+    <button class="egg-close" onclick="closeEgg()">繼續記錄 →</button>
+  </div>
+</div>
+
+<!-- ======== QUOTE ZONE ======== -->
 <div class="quote-zone">
   <div class="quote-inner">
     <div class="quote-label">每日一語</div>
     <div class="quote-text" id="q-text">載入中…</div>
-    <div class="quote-source" id="q-src"></div>
+    <div class="quote-src" id="q-src"></div>
     <div class="quote-actions">
-      <button class="btn-shuffle" onclick="shuffleQuote()">↻ 換一句</button>
-      <button class="btn-manage-quotes" onclick="openModal()">管理語錄</button>
+      <button class="btn-ghost" onclick="shuffleQuote()">↻ 換一句</button>
+      <button class="btn-link" onclick="openModal()">管理語錄</button>
     </div>
   </div>
 </div>
 
-<!-- NAV -->
+<!-- ======== NAV ======== -->
 <div class="nav">
   <button class="nav-tab active" onclick="switchTab('record',this)">紀錄</button>
   <button class="nav-tab" onclick="switchTab('stats',this)">統計</button>
+  <div class="nav-right">
+    <span class="nav-user" id="nav-user"></span>
+    <button class="nav-logout" onclick="logout()">登出</button>
+  </div>
 </div>
 
-<!-- RECORD PAGE -->
+<!-- ======== RECORD PAGE ======== -->
 <div class="page active" id="page-record">
   <div class="date-bar">
     <label>日期</label>
@@ -552,10 +455,10 @@ body::after {
     </div>
   </div>
   <div class="sec-label">最近紀錄</div>
-  <div class="entry-list" id="entry-list"></div>
+  <div class="entry-list" id="entry-list"><div class="loading-row">載入中…</div></div>
 </div>
 
-<!-- STATS PAGE -->
+<!-- ======== STATS PAGE ======== -->
 <div class="page" id="page-stats">
   <div class="stats-top">
     <div class="stat-box" id="stat-week"></div>
@@ -575,7 +478,7 @@ body::after {
   <div class="totals" id="totals"></div>
 </div>
 
-<!-- QUOTE MANAGER MODAL -->
+<!-- ======== QUOTE MODAL ======== -->
 <div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-header">
@@ -583,19 +486,42 @@ body::after {
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="quote-add-form">
-        <textarea id="new-quote-text" placeholder="輸入一段你喜歡的話…"></textarea>
-        <input type="text" id="new-quote-src" placeholder="來源（例：楊定一《靜心》）">
-        <button class="btn-add-quote" onclick="addCustomQuote()">＋ 加入語錄</button>
+      <div class="q-add-form">
+        <textarea id="nq-text" placeholder="輸入一段你喜歡的話…"></textarea>
+        <input type="text" id="nq-src" placeholder="來源（例：楊定一《靜心》）">
+        <button class="btn-add-q" onclick="addCustomQuote()">＋ 加入語錄</button>
       </div>
-      <div class="quote-list-modal" id="quote-list-modal"></div>
+      <div class="q-list" id="q-list"></div>
     </div>
   </div>
 </div>
 
 <script>
-// ===== BUILT-IN QUOTES =====
-const BUILTIN_QUOTES = [
+// ======== CONFIG ========
+// ⚠️ 把下面兩行換成你的 Supabase 資訊
+const SUPA_URL = 'https://uwpgfqpwjubcpvqmqtoz.supabase.co';
+const SUPA_KEY = 'sb_publishable_DncC3bMb5nlv_EcaNlZ3sQ_yPkqfpr4';
+
+// ======== SUPABASE FETCH HELPER ========
+async function sb(path, opts = {}) {
+  const res = await fetch(SUPA_URL + '/rest/v1/' + path, {
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || '',
+      ...opts.headers
+    },
+    method: opts.method || 'GET',
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  if (opts.method === 'DELETE' || opts.noJson) return res;
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+// ======== BUILT-IN QUOTES ========
+const BUILTIN = [
   { text: "你本來就是完整的，不需要透過外在的成就或認可來證明自己的價值。", src: "楊定一《全部的你》" },
   { text: "靜下來，才能聽見自己內心真正的聲音。所有的答案，早已在你心中。", src: "楊定一《靜心》" },
   { text: "每一個當下，都是全部。把意識帶回這裡、帶回現在，就是最深的修行。", src: "楊定一《當下》" },
@@ -613,75 +539,134 @@ const BUILTIN_QUOTES = [
   { text: "每一個困境，都藏著一個你還沒發現的禮物。", src: "楊定一《轉捩點》" },
 ];
 
-// ===== STORAGE =====
-const K = { entries: 'diary_v2_entries', customQuotes: 'diary_v2_custom_quotes', todayQuote: 'diary_v2_today_quote' };
-const load = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
-const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+// ======== STATE ========
+let currentUser = null;  // { id, username }
+let authMode = 'login';
+let allEntries = [];
+
 const today = () => new Date().toISOString().slice(0,10);
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-// ===== QUOTE LOGIC =====
-function getAllQuotes() {
-  const custom = load(K.customQuotes);
-  return [...BUILTIN_QUOTES.map(q => ({...q, type:'builtin'})), ...custom.map(q => ({...q, type:'custom'}))];
+// ======== PASSWORD HASHING ========
+async function hashPw(s) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
 }
 
-function loadDailyQuote() {
-  const stored = JSON.parse(localStorage.getItem(K.todayQuote) || 'null');
-  if (stored && stored.date === today()) return stored.quote;
-  const all = getAllQuotes();
-  const q = all[Math.floor(Math.random() * all.length)];
-  localStorage.setItem(K.todayQuote, JSON.stringify({ date: today(), quote: q }));
-  return q;
+// ======== AUTH ========
+function switchAuthTab(mode, btn) {
+  authMode = mode;
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('auth-btn').textContent = mode === 'login' ? '登入' : '註冊';
+  document.getElementById('auth-msg').textContent = '';
 }
 
-function renderQuote(q) {
-  document.getElementById('q-text').textContent = q.text;
-  document.getElementById('q-src').textContent = q.src ? '— ' + q.src : '';
+function toggleAuthPw() {
+  const inp = document.getElementById('auth-password');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
 }
 
-function shuffleQuote() {
-  const all = getAllQuotes();
-  const q = all[Math.floor(Math.random() * all.length)];
-  localStorage.setItem(K.todayQuote, JSON.stringify({ date: today(), quote: q }));
-  const el = document.getElementById('q-text');
-  el.style.opacity = '0';
-  setTimeout(() => { renderQuote(q); el.style.opacity = '1'; el.style.transition = 'opacity .4s'; }, 200);
+function setAuthMsg(msg, isErr = true) {
+  const el = document.getElementById('auth-msg');
+  el.textContent = msg;
+  el.className = 'auth-msg ' + (isErr ? 'err' : 'ok');
 }
 
-// ===== ENTRIES =====
-document.getElementById('entry-date').value = today();
+async function handleAuth() {
+  const username = document.getElementById('auth-username').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if (!username || !password) { setAuthMsg('請填寫帳號和密碼'); return; }
+  if (username.length < 2) { setAuthMsg('帳號至少 2 個字'); return; }
+  if (password.length < 4) { setAuthMsg('密碼至少 4 個字'); return; }
 
-function addEntry(type) {
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = true; btn.textContent = '處理中…';
+
+  try {
+    const pwHash = await hashPw(password);
+    if (authMode === 'register') {
+      // Check if username exists
+      const existing = await sb('diary_users?username=eq.' + encodeURIComponent(username) + '&select=id');
+      if (existing.length > 0) { setAuthMsg('這個帳號已被使用'); return; }
+      const rows = await sb('diary_users', {
+        method: 'POST', prefer: 'return=representation',
+        body: { username, pw_hash: pwHash }
+      });
+      if (!rows || rows.length === 0) { setAuthMsg('註冊失敗，請稍後再試'); return; }
+      currentUser = { id: rows[0].id, username: rows[0].username };
+      setAuthMsg('註冊成功！', false);
+    } else {
+      const rows = await sb('diary_users?username=eq.' + encodeURIComponent(username) + '&pw_hash=eq.' + encodeURIComponent(pwHash) + '&select=id,username');
+      if (!rows || rows.length === 0) { setAuthMsg('帳號或密碼錯誤'); return; }
+      currentUser = { id: rows[0].id, username: rows[0].username };
+    }
+    // Save session
+    sessionStorage.setItem('diary_user', JSON.stringify(currentUser));
+    await enterApp();
+  } catch(e) {
+    setAuthMsg('連線錯誤，請確認 Supabase 設定');
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = authMode === 'login' ? '登入' : '註冊';
+  }
+}
+
+async function enterApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById("nav-user").textContent = currentUser.username;
+  document.getElementById('entry-date').value = today();
+  await loadEntries();
+  renderDailyQuote();
+  await checkWeeklyEgg();
+}
+
+function logout() {
+  sessionStorage.removeItem('diary_user');
+  currentUser = null; allEntries = [];
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('auth-username').value = '';
+  document.getElementById('auth-password').value = '';
+  setAuthMsg('');
+}
+
+// ======== ENTRIES ========
+async function loadEntries() {
+  document.getElementById('entry-list').innerHTML = '<div class="loading-row">載入中…</div>';
+  const rows = await sb('diary_entries?user_id=eq.' + currentUser.id + '&order=created_at.desc&limit=60');
+  allEntries = rows || [];
+  renderList();
+}
+
+async function addEntry(type) {
   const el = document.getElementById(type + '-text');
   const text = el.value.trim();
   if (!text) { el.focus(); return; }
   const date = document.getElementById('entry-date').value || today();
-  const entries = load(K.entries);
-  entries.unshift({ id: Date.now(), type, text, date });
-  save(K.entries, entries);
-  el.value = '';
-  renderList();
+  const row = await sb('diary_entries', {
+    method: 'POST', prefer: 'return=representation',
+    body: { user_id: currentUser.id, type, text, date }
+  });
+  if (row && row[0]) { allEntries.unshift(row[0]); el.value = ''; renderList(); }
 }
 
-function deleteEntry(id) {
-  save(K.entries, load(K.entries).filter(e => e.id !== id));
+async function deleteEntry(id) {
+  await sb('diary_entries?id=eq.' + id + '&user_id=eq.' + currentUser.id, { method: 'DELETE', noJson: true });
+  allEntries = allEntries.filter(e => e.id !== id);
   renderList();
 }
-
-function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function renderList() {
-  const entries = load(K.entries);
   const list = document.getElementById('entry-list');
-  if (!entries.length) { list.innerHTML = '<div class="empty">還沒有任何紀錄，開始記錄今天吧</div>'; return; }
-  list.innerHTML = entries.slice(0,40).map(e => `
+  if (!allEntries.length) { list.innerHTML = '<div class="loading-row">還沒有任何紀錄，開始記錄今天吧</div>'; return; }
+  list.innerHTML = allEntries.slice(0,40).map(e => `
     <div class="entry-row">
       <span class="etag ${e.type==='good'?'etag-good':'etag-bad'}">${e.type==='good'?'好事':'壞事'}</span>
       <span class="etext">${esc(e.text)}</span>
       <span class="edate">${e.date}</span>
-      <button class="edel" onclick="deleteEntry(${e.id})" title="刪除">✕</button>
-    </div>
-  `).join('');
+      <button class="edel" onclick="deleteEntry(${e.id})">✕</button>
+    </div>`).join('');
 }
 
 ['good-text','bad-text'].forEach(id => {
@@ -690,22 +675,21 @@ function renderList() {
   });
 });
 
-// ===== STATS =====
+// ======== STATS ========
 function periodStart(p) {
   const d = new Date();
-  if (p==='week') { d.setDate(d.getDate() - ((d.getDay()+6)%7)); }
+  if (p==='week') d.setDate(d.getDate() - ((d.getDay()+6)%7));
   else if (p==='month') d.setDate(1);
   else if (p==='year') { d.setMonth(0); d.setDate(1); }
   return d.toISOString().slice(0,10);
 }
 
 function renderStats() {
-  const entries = load(K.entries);
   [['stat-week','本週','week'],['stat-month','本月','month'],['stat-year','本年','year']].forEach(([id,lbl,p]) => {
     const start = periodStart(p);
-    const f = entries.filter(e => e.date >= start);
-    const g = f.filter(e => e.type==='good').length;
-    const b = f.filter(e => e.type==='bad').length;
+    const f = allEntries.filter(e => e.date >= start);
+    const g = f.filter(e=>e.type==='good').length;
+    const b = f.filter(e=>e.type==='bad').length;
     document.getElementById(id).innerHTML = `
       <div class="stat-period">${lbl}</div>
       <div class="stat-nums">
@@ -714,63 +698,154 @@ function renderStats() {
       </div>`;
   });
 
-  // Bar chart
   const days = Array.from({length:7},(_,i) => { const d=new Date(); d.setDate(d.getDate()-6+i); return d.toISOString().slice(0,10); });
-  const maxV = Math.max(1, ...days.map(day => entries.filter(e=>e.date===day).length));
+  const maxV = Math.max(1, ...days.map(day => allEntries.filter(e=>e.date===day).length));
   document.getElementById('bar-chart').innerHTML = days.map(day => {
-    const g = entries.filter(e=>e.date===day&&e.type==='good').length;
-    const b = entries.filter(e=>e.date===day&&e.type==='bad').length;
+    const g = allEntries.filter(e=>e.date===day&&e.type==='good').length;
+    const b = allEntries.filter(e=>e.date===day&&e.type==='bad').length;
     return `<div class="bgroup">
       <div class="bpair">
-        <div class="bar g" style="height:${Math.round(g/maxV*86)}px"></div>
-        <div class="bar b" style="height:${Math.round(b/maxV*86)}px"></div>
+        <div class="bar g" style="height:${Math.round(g/maxV*80)}px"></div>
+        <div class="bar b" style="height:${Math.round(b/maxV*80)}px"></div>
       </div>
       <div class="blbl">${day.slice(5)}</div>
     </div>`;
   }).join('');
 
-  // Totals / streak
-  const allDates = [...new Set(entries.map(e=>e.date))].sort().reverse();
+  const allDates = [...new Set(allEntries.map(e=>e.date))].sort().reverse();
   let streak = 0, check = today();
   for (const d of allDates) {
     if (d===check) { streak++; const dt=new Date(check); dt.setDate(dt.getDate()-1); check=dt.toISOString().slice(0,10); }
     else if (d<check) break;
   }
   document.getElementById('totals').innerHTML = `
-    <div class="total-item"><div class="total-v accent">${streak}</div><div class="total-l">連續記錄天數</div></div>
-    <div class="total-item"><div class="total-v accent">${allDates.length}</div><div class="total-l">總記錄天數</div></div>
-    <div class="total-item"><div class="total-v gv">${entries.filter(e=>e.type==='good').length}</div><div class="total-l">累計好事</div></div>
-    <div class="total-item"><div class="total-v bv">${entries.filter(e=>e.type==='bad').length}</div><div class="total-l">累計壞事</div></div>`;
+    <div class="total-item"><div class="total-v ac">${streak}</div><div class="total-l">連續記錄天數</div></div>
+    <div class="total-item"><div class="total-v ac">${allDates.length}</div><div class="total-l">總記錄天數</div></div>
+    <div class="total-item"><div class="total-v gv">${allEntries.filter(e=>e.type==='good').length}</div><div class="total-l">累計好事</div></div>
+    <div class="total-item"><div class="total-v bv">${allEntries.filter(e=>e.type==='bad').length}</div><div class="total-l">累計壞事</div></div>`;
 }
 
-// ===== QUOTE MODAL =====
-function openModal() {
-  document.getElementById('modal-overlay').classList.add('open');
+// ======== WEEKLY EGG ========
+function getWeekKey() {
+  const d = new Date();
+  const jan1 = new Date(d.getFullYear(), 0, 1);
+  const week = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  return d.getFullYear() + '-W' + String(week).padStart(2,'0');
+}
+
+function getWeekStart() {
+  const d = new Date();
+  d.setDate(d.getDate() - ((d.getDay()+6)%7));
+  d.setHours(0,0,0,0);
+  return d.toISOString().slice(0,10);
+}
+
+async function checkWeeklyEgg() {
+  const weekKey = getWeekKey();
+  const todayDow = (new Date().getDay() + 6) % 7; // 0=Mon
+
+  // Check if we already have a record for this week
+  const rows = await sb('diary_weekly_egg?user_id=eq.' + currentUser.id + '&week_key=eq.' + weekKey);
+  let egg = rows && rows[0];
+
+  if (!egg) {
+    // First time this week: randomly pick a day (0-6)
+    const triggerDay = Math.floor(Math.random() * 7);
+    const inserted = await sb('diary_weekly_egg', {
+      method: 'POST', prefer: 'return=representation',
+      body: { user_id: currentUser.id, week_key: weekKey, trigger_day: triggerDay, shown: false }
+    });
+    egg = inserted && inserted[0];
+  }
+
+  if (!egg || egg.shown) return;
+  if (todayDow !== egg.trigger_day) return;
+
+  // Show egg!
+  const weekStart = getWeekStart();
+  const goodCount = allEntries.filter(e => e.date >= weekStart && e.type === 'good').length;
+  const allQ = await getAllQuotes();
+  const q = allQ[Math.floor(Math.random() * allQ.length)];
+
+  // Format week label
+  const d = new Date(); d.setDate(d.getDate() - ((d.getDay()+6)%7));
+  const ms = d.toLocaleDateString('zh-TW',{month:'long',day:'numeric'});
+  d.setDate(d.getDate()+6);
+  const me = d.toLocaleDateString('zh-TW',{month:'long',day:'numeric'});
+  document.getElementById('egg-week-label').textContent = ms + ' — ' + me;
+  document.getElementById('egg-count').textContent = goodCount;
+  document.getElementById('egg-quote-text').textContent = q.text;
+  document.getElementById('egg-quote-src').textContent = q.src ? '— ' + q.src : '';
+  document.getElementById('egg-overlay').classList.remove('hidden');
+
+  // Mark as shown
+  await sb('diary_weekly_egg?id=eq.' + egg.id, {
+    method: 'PATCH', prefer: 'return=minimal',
+    body: { shown: true }
+  });
+}
+
+function closeEgg() {
+  document.getElementById('egg-overlay').classList.add('hidden');
+}
+
+// ======== QUOTES ========
+async function getAllQuotes() {
+  if (!currentUser) return BUILTIN.map(q=>({...q,type:'builtin'}));
+  const custom = await sb('diary_quotes?user_id=eq.' + currentUser.id + '&order=created_at.desc');
+  return [
+    ...BUILTIN.map(q=>({...q,type:'builtin'})),
+    ...(custom||[]).map(q=>({...q,type:'custom'}))
+  ];
+}
+
+function renderDailyQuote() {
+  const stored = JSON.parse(sessionStorage.getItem('diary_today_quote') || 'null');
+  if (stored && stored.date === today()) { showQuote(stored.quote); return; }
+  getAllQuotes().then(all => {
+    const q = all[Math.floor(Math.random() * all.length)];
+    sessionStorage.setItem('diary_today_quote', JSON.stringify({ date: today(), quote: q }));
+    showQuote(q);
+  });
+}
+
+function showQuote(q) {
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-src').textContent = q.src ? '— ' + q.src : '';
+}
+
+function shuffleQuote() {
+  getAllQuotes().then(all => {
+    const q = all[Math.floor(Math.random() * all.length)];
+    sessionStorage.setItem('diary_today_quote', JSON.stringify({ date: today(), quote: q }));
+    const el = document.getElementById('q-text');
+    el.style.opacity = '0';
+    setTimeout(() => { showQuote(q); el.style.opacity = '1'; el.style.transition = 'opacity .35s'; }, 200);
+  });
+}
+
+async function addCustomQuote() {
+  const text = document.getElementById('nq-text').value.trim();
+  const src = document.getElementById('nq-src').value.trim();
+  if (!text) { document.getElementById('nq-text').focus(); return; }
+  await sb('diary_quotes', {
+    method: 'POST', prefer: 'return=minimal',
+    body: { user_id: currentUser.id, text, src: src || null }
+  });
+  document.getElementById('nq-text').value = '';
+  document.getElementById('nq-src').value = '';
   renderQuoteList();
 }
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
 
-function addCustomQuote() {
-  const text = document.getElementById('new-quote-text').value.trim();
-  const src = document.getElementById('new-quote-src').value.trim();
-  if (!text) { document.getElementById('new-quote-text').focus(); return; }
-  const customs = load(K.customQuotes);
-  customs.unshift({ id: Date.now(), text, src });
-  save(K.customQuotes, customs);
-  document.getElementById('new-quote-text').value = '';
-  document.getElementById('new-quote-src').value = '';
+async function deleteCustomQuote(id) {
+  await sb('diary_quotes?id=eq.' + id + '&user_id=eq.' + currentUser.id, { method: 'DELETE', noJson: true });
   renderQuoteList();
 }
 
-function deleteCustomQuote(id) {
-  save(K.customQuotes, load(K.customQuotes).filter(q => q.id !== id));
-  renderQuoteList();
-}
-
-function renderQuoteList() {
-  const all = getAllQuotes();
-  document.getElementById('quote-list-modal').innerHTML = all.map(q => `
-    <div class="quote-item-modal">
+async function renderQuoteList() {
+  const all = await getAllQuotes();
+  document.getElementById('q-list').innerHTML = all.map(q => `
+    <div class="qi">
       <div class="qi-body">
         <div class="qi-text">${esc(q.text)}</div>
         ${q.src ? `<div class="qi-src">— ${esc(q.src)}</div>` : ''}
@@ -780,72 +855,34 @@ function renderQuoteList() {
     </div>`).join('');
 }
 
-// ===== TAB SWITCH =====
+function openModal() { document.getElementById('modal-overlay').classList.add('open'); renderQuoteList(); }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+// ======== TABS ========
 function switchTab(name, btn) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('page-'+name).classList.add('active');
-  if (name==='stats') renderStats();
+  if (name === 'stats') renderStats();
 }
 
-// ===== LOCK SCREEN =====
-// 密碼存為 SHA-256 hash，不明文存在程式碼裡
-// 預設密碼: diary2026 → 想改密碼請替換下面的 HASH 值
-// 產生新 hash: 在瀏覽器 console 執行:
-//   crypto.subtle.digest('SHA-256', new TextEncoder().encode('你的新密碼'))
-//     .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
-const PW_HASH = 'b1c7e1a2e2d3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9';
-
-// 實際 hash of "diary2026"
-async function hashStr(s) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
-}
-
-// 用 sessionStorage 記住這次已解鎖（關掉分頁就要重新輸入）
-async function tryUnlock() {
-  const input = document.getElementById('lock-input').value;
-  const h = await hashStr(input);
-  const stored = await hashStr('diary2026'); // 預設密碼 hash
-  const customHash = localStorage.getItem('diary_pw_hash');
-  const correct = customHash ? h === customHash : h === stored;
-  if (correct) {
-    sessionStorage.setItem('diary_unlocked', '1');
-    const ls = document.getElementById('lock-screen');
-    ls.style.opacity = '0';
-    ls.style.transition = 'opacity .4s';
-    setTimeout(() => ls.style.display = 'none', 400);
-    document.getElementById('lock-error').textContent = '';
-  } else {
-    const inp = document.getElementById('lock-input');
-    inp.classList.remove('shake');
-    void inp.offsetWidth;
-    inp.classList.add('shake');
-    document.getElementById('lock-error').textContent = '密碼錯誤，請再試一次';
-    inp.value = '';
-    setTimeout(() => inp.classList.remove('shake'), 400);
-  }
-}
-
-function togglePw() {
-  const inp = document.getElementById('lock-input');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  if (sessionStorage.getItem('diary_unlocked') === '1') {
-    document.getElementById('lock-screen').style.display = 'none';
-  }
-  document.getElementById('lock-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') tryUnlock();
-  });
-  setTimeout(() => document.getElementById('lock-input').focus(), 100);
+// ======== INIT ========
+document.getElementById('auth-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleAuth();
+});
+document.getElementById('auth-username').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('auth-password').focus();
 });
 
-// ===== INIT =====
-renderQuote(loadDailyQuote());
-renderList();
+// Auto-login from session
+const savedUser = sessionStorage.getItem('diary_user');
+if (savedUser) {
+  currentUser = JSON.parse(savedUser);
+  enterApp();
+} else {
+  setTimeout(() => document.getElementById('auth-username').focus(), 100);
+}
 </script>
 </body>
 </html>
