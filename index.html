@@ -6,7 +6,7 @@
 <title>好事壞事紀錄表</title>
 <!-- PWA -->
 <link rel="manifest" href="/totality-of-me/manifest.json">
-<meta name="theme-color" content="#080a12">
+<meta name="theme-color" content="#08090f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="好事壞事紀錄表">
@@ -16,13 +16,24 @@
 /* ============ RESET & VARS ============ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg: #07091a; --surface: #0d1128; --surface2: #131830; --surface3: #1a2040;
-  --border: #2a3260; --border2: #3a4475;
-  --good: #5de8a0; --good-dim: #0a2e20;
-  --bad: #f07090; --bad-dim: #2e0e1e;
-  --text: #e0eaff; --text-dim: #b0bce0; --text-mid: #c8d4f0;
-  --accent: #c4aaff; --accent-dim: #1e1545;
-  --quote-bg: #05070f;
+  --bg: #08090f;
+  --surface: #0e1018;
+  --surface2: #141620;
+  --surface3: #1c1e2a;
+  --border: #22253a;
+  --border2: #2e3250;
+  --good: #ffb347;
+  --good-bright: #ffd280;
+  --good-dim: #2a1e08;
+  --bad: #4dd9c0;
+  --bad-bright: #80ede0;
+  --bad-dim: #08201e;
+  --text: #f0f2ff;
+  --text-dim: #c0c8e8;
+  --text-mid: #d8dff5;
+  --accent: #ffb347;
+  --accent-dim: #2a1e08;
+  --quote-bg: #06070e;
 }
 html { scroll-behavior: smooth; }
 body {
@@ -31,35 +42,36 @@ body {
   font-family: 'Noto Serif TC', serif;
   min-height: 100vh;
   background-image:
-    radial-gradient(ellipse at 20% 10%, rgba(140,80,255,0.18) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 85%, rgba(40,100,220,0.15) 0%, transparent 55%),
-    radial-gradient(ellipse at 55% 50%, rgba(80,60,180,0.08) 0%, transparent 60%);
+    radial-gradient(ellipse at 15% 0%, rgba(255,160,60,0.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 100%, rgba(40,200,180,0.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(20,20,50,0.8) 0%, transparent 100%);
 }
-/* 星點效果 */
 body::before {
   content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background-image:
-    radial-gradient(1.5px 1.5px at 8% 12%, rgba(255,255,255,0.9) 0%, transparent 100%),
-    radial-gradient(1px 1px at 22% 38%, rgba(255,255,255,0.7) 0%, transparent 100%),
-    radial-gradient(2px 2px at 38% 6%, rgba(255,255,255,0.95) 0%, transparent 100%),
-    radial-gradient(1px 1px at 52% 22%, rgba(200,210,255,0.7) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 67% 10%, rgba(255,255,255,0.85) 0%, transparent 100%),
-    radial-gradient(2px 2px at 83% 32%, rgba(255,255,255,0.9) 0%, transparent 100%),
-    radial-gradient(1px 1px at 94% 16%, rgba(180,190,255,0.7) 0%, transparent 100%),
-    radial-gradient(1px 1px at 13% 58%, rgba(255,255,255,0.6) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 32% 72%, rgba(255,255,255,0.8) 0%, transparent 100%),
-    radial-gradient(1px 1px at 58% 52%, rgba(200,220,255,0.7) 0%, transparent 100%),
-    radial-gradient(2px 2px at 74% 68%, rgba(255,255,255,0.9) 0%, transparent 100%),
-    radial-gradient(1px 1px at 88% 62%, rgba(255,255,255,0.6) 0%, transparent 100%),
-    radial-gradient(1px 1px at 4% 82%, rgba(255,255,255,0.8) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 44% 88%, rgba(220,200,255,0.75) 0%, transparent 100%),
-    radial-gradient(1px 1px at 78% 88%, rgba(255,255,255,0.85) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 18% 93%, rgba(180,200,255,0.7) 0%, transparent 100%),
-    radial-gradient(1px 1px at 63% 95%, rgba(200,180,255,0.8) 0%, transparent 100%),
-    radial-gradient(2px 2px at 96% 78%, rgba(255,255,255,0.7) 0%, transparent 100%);
+    radial-gradient(1.5px 1.5px at 7%  9%,  rgba(255,230,180,0.95) 0%, transparent 100%),
+    radial-gradient(1px  1px  at 19% 33%,  rgba(255,255,255,0.7)   0%, transparent 100%),
+    radial-gradient(2px  2px  at 33% 5%,   rgba(255,255,255,0.9)   0%, transparent 100%),
+    radial-gradient(1px  1px  at 47% 20%,  rgba(200,220,255,0.65)  0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 61% 8%, rgba(255,255,255,0.85)  0%, transparent 100%),
+    radial-gradient(1px  1px  at 76% 28%,  rgba(255,255,255,0.7)   0%, transparent 100%),
+    radial-gradient(2px  2px  at 88% 14%,  rgba(180,240,235,0.8)   0%, transparent 100%),
+    radial-gradient(1px  1px  at 94% 42%,  rgba(255,255,255,0.6)   0%, transparent 100%),
+    radial-gradient(1px  1px  at 12% 55%,  rgba(255,255,255,0.55)  0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 28% 68%,rgba(255,255,255,0.75)  0%, transparent 100%),
+    radial-gradient(1px  1px  at 54% 50%,  rgba(200,220,255,0.6)   0%, transparent 100%),
+    radial-gradient(2px  2px  at 70% 62%,  rgba(255,255,255,0.85)  0%, transparent 100%),
+    radial-gradient(1px  1px  at 83% 58%,  rgba(180,240,235,0.65)  0%, transparent 100%),
+    radial-gradient(1px  1px  at 3%  78%,  rgba(255,255,255,0.7)   0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 42% 85%,rgba(255,230,180,0.7)   0%, transparent 100%),
+    radial-gradient(1px  1px  at 66% 80%,  rgba(255,255,255,0.8)   0%, transparent 100%),
+    radial-gradient(2px  2px  at 90% 75%,  rgba(255,255,255,0.7)   0%, transparent 100%),
+    radial-gradient(1px  1px  at 55% 92%,  rgba(180,240,235,0.75)  0%, transparent 100%),
+    radial-gradient(1px  1px  at 22% 96%,  rgba(255,230,180,0.65)  0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 78% 93%,rgba(255,255,255,0.8)   0%, transparent 100%);
 }
 body::after {
-  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9998; opacity: .3;
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9998; opacity: .25;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
 }
 
@@ -70,7 +82,7 @@ input, textarea, button { font-family: inherit; }
 /* ============ AUTH SCREEN ============ */
 #auth-screen {
   position: fixed; inset: 0; z-index: 500;
-  background: radial-gradient(ellipse at 50% 30%, #12102a 0%, #080a12 70%);
+  background: radial-gradient(ellipse at 50% 35%, #1a1408 0%, #08090f 70%);
   display: flex; align-items: center; justify-content: center;
 }
 .auth-box {
@@ -140,7 +152,7 @@ input, textarea, button { font-family: inherit; }
 .egg-count {
   font-size: 5rem; font-weight: 700; color: var(--good);
   font-family: 'DM Mono', monospace; line-height: 1;
-  text-shadow: 0 0 40px rgba(93,232,160,.5), 0 0 80px rgba(93,232,160,.2);
+  text-shadow: 0 0 40px rgba(255,179,71,.6), 0 0 80px rgba(255,179,71,.25);
 }
 .egg-label {
   font-size: 1rem; color: var(--text-mid);
@@ -181,7 +193,7 @@ input, textarea, button { font-family: inherit; }
 }
 .quote-zone::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent), #7eb8ff, transparent); opacity: .8;
+  background: linear-gradient(90deg, transparent, var(--good), var(--bad), transparent); opacity: .7;
 }
 .quote-inner { max-width: 680px; }
 .quote-label {
@@ -241,7 +253,7 @@ input, textarea, button { font-family: inherit; }
   cursor: pointer; border: none; background: none;
   border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .2s;
 }
-.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-tab.active { color: var(--good); border-bottom-color: var(--good); }
 .nav-tab:hover:not(.active) { color: var(--text-mid); }
 
 /* ============ PAGES ============ */
@@ -486,12 +498,12 @@ input, textarea, button { font-family: inherit; }
   <div class="cards">
     <div class="entry-card good">
       <div class="card-head"><div class="pip"></div>好事</div>
-      <textarea id="good-text" placeholder="今天我做了哪些好事？"></textarea>
+      <textarea id="good-text" placeholder="今天發生了什麼好事？"></textarea>
       <button class="add-btn" onclick="addEntry('good')">＋ 新增好事</button>
     </div>
     <div class="entry-card bad">
       <div class="card-head"><div class="pip"></div>壞事</div>
-      <textarea id="bad-text" placeholder="今天我做了哪些壞事？"></textarea>
+      <textarea id="bad-text" placeholder="今天有什麼不順的事？"></textarea>
       <button class="add-btn" onclick="addEntry('bad')">＋ 新增壞事</button>
     </div>
   </div>
