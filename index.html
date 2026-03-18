@@ -6,7 +6,7 @@
 <title>好事壞事紀錄表</title>
 <!-- PWA -->
 <link rel="manifest" href="/totality-of-me/manifest.json">
-<meta name="theme-color" content="#0d0c0a">
+<meta name="theme-color" content="#080a12">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="好事壞事">
@@ -16,19 +16,51 @@
 /* ============ RESET & VARS ============ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg: #0d0c0a; --surface: #161512; --surface2: #1e1c18; --surface3: #252320;
-  --border: #2a2824; --border2: #343230;
-  --good: #8fb87a; --good-dim: #1e2d17;
-  --bad: #c97b6a; --bad-dim: #321a16;
-  --text: #e2ddd4; --text-dim: #6b6660; --text-mid: #9e9890;
-  --accent: #c4a45e; --accent-dim: #2a2010;
-  --quote-bg: #13110e;
+  --bg: #07091a; --surface: #0d1128; --surface2: #131830; --surface3: #1a2040;
+  --border: #2a3260; --border2: #3a4475;
+  --good: #5de8a0; --good-dim: #0a2e20;
+  --bad: #f07090; --bad-dim: #2e0e1e;
+  --text: #e0eaff; --text-dim: #b0bce0; --text-mid: #c8d4f0;
+  --accent: #c4aaff; --accent-dim: #1e1545;
+  --quote-bg: #05070f;
 }
 html { scroll-behavior: smooth; }
-body { background: var(--bg); color: var(--text); font-family: 'Noto Serif TC', serif; min-height: 100vh; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Serif TC', serif;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(140,80,255,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 85%, rgba(40,100,220,0.15) 0%, transparent 55%),
+    radial-gradient(ellipse at 55% 50%, rgba(80,60,180,0.08) 0%, transparent 60%);
+}
+/* 星點效果 */
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 8% 12%, rgba(255,255,255,0.9) 0%, transparent 100%),
+    radial-gradient(1px 1px at 22% 38%, rgba(255,255,255,0.7) 0%, transparent 100%),
+    radial-gradient(2px 2px at 38% 6%, rgba(255,255,255,0.95) 0%, transparent 100%),
+    radial-gradient(1px 1px at 52% 22%, rgba(200,210,255,0.7) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 67% 10%, rgba(255,255,255,0.85) 0%, transparent 100%),
+    radial-gradient(2px 2px at 83% 32%, rgba(255,255,255,0.9) 0%, transparent 100%),
+    radial-gradient(1px 1px at 94% 16%, rgba(180,190,255,0.7) 0%, transparent 100%),
+    radial-gradient(1px 1px at 13% 58%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 32% 72%, rgba(255,255,255,0.8) 0%, transparent 100%),
+    radial-gradient(1px 1px at 58% 52%, rgba(200,220,255,0.7) 0%, transparent 100%),
+    radial-gradient(2px 2px at 74% 68%, rgba(255,255,255,0.9) 0%, transparent 100%),
+    radial-gradient(1px 1px at 88% 62%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 4% 82%, rgba(255,255,255,0.8) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 44% 88%, rgba(220,200,255,0.75) 0%, transparent 100%),
+    radial-gradient(1px 1px at 78% 88%, rgba(255,255,255,0.85) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 18% 93%, rgba(180,200,255,0.7) 0%, transparent 100%),
+    radial-gradient(1px 1px at 63% 95%, rgba(200,180,255,0.8) 0%, transparent 100%),
+    radial-gradient(2px 2px at 96% 78%, rgba(255,255,255,0.7) 0%, transparent 100%);
+}
 body::after {
-  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9998; opacity: .5;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9998; opacity: .3;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
 }
 
 /* ============ UTILITY ============ */
@@ -38,7 +70,7 @@ input, textarea, button { font-family: inherit; }
 /* ============ AUTH SCREEN ============ */
 #auth-screen {
   position: fixed; inset: 0; z-index: 500;
-  background: var(--bg);
+  background: radial-gradient(ellipse at 50% 30%, #12102a 0%, #080a12 70%);
   display: flex; align-items: center; justify-content: center;
 }
 .auth-box {
@@ -49,7 +81,7 @@ input, textarea, button { font-family: inherit; }
 .auth-logo {
   text-align: center; margin-bottom: 2.25rem;
 }
-.auth-logo .icon { font-size: 1.8rem; opacity: .35; display: block; margin-bottom: .75rem; }
+.auth-logo .icon { font-size: 1.8rem; display: block; margin-bottom: .75rem; }
 .auth-logo h1 {
   font-family: 'Noto Serif TC', serif; font-weight: 300;
   font-size: 1.3rem; letter-spacing: .18em; color: var(--accent);
@@ -96,7 +128,7 @@ input, textarea, button { font-family: inherit; }
 /* ============ WEEKLY EGG OVERLAY ============ */
 #egg-overlay {
   position: fixed; inset: 0; z-index: 400;
-  background: rgba(13,12,10,.96); backdrop-filter: blur(6px);
+  background: rgba(8,10,18,.96); backdrop-filter: blur(8px);
   display: flex; align-items: center; justify-content: center;
   flex-direction: column; gap: 0; padding: 2rem;
 }
@@ -108,7 +140,7 @@ input, textarea, button { font-family: inherit; }
 .egg-count {
   font-size: 5rem; font-weight: 700; color: var(--good);
   font-family: 'DM Mono', monospace; line-height: 1;
-  text-shadow: 0 0 40px rgba(143,184,122,.25);
+  text-shadow: 0 0 40px rgba(93,232,160,.5), 0 0 80px rgba(93,232,160,.2);
 }
 .egg-label {
   font-size: 1rem; color: var(--text-mid);
@@ -126,7 +158,7 @@ input, textarea, button { font-family: inherit; }
 }
 .egg-quote::before {
   content: '"'; position: absolute; left: 0; top: -.2rem;
-  font-size: 2rem; color: var(--accent); opacity: .35; line-height: 1;
+  font-size: 2rem; color: var(--accent); line-height: 1;
 }
 .egg-src {
   font-family: 'DM Mono', monospace; font-size: .65rem;
@@ -143,17 +175,18 @@ input, textarea, button { font-family: inherit; }
 
 /* ============ QUOTE ZONE ============ */
 .quote-zone {
-  background: var(--quote-bg); border-bottom: 1px solid var(--border);
+  background: rgba(10,12,24,0.85); border-bottom: 1px solid var(--border);
   padding: 2.25rem 2rem 1.75rem; position: relative; overflow: hidden;
+  backdrop-filter: blur(2px);
 }
 .quote-zone::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .35;
+  background: linear-gradient(90deg, transparent, var(--accent), #7eb8ff, transparent); opacity: .8;
 }
 .quote-inner { max-width: 680px; }
 .quote-label {
   font-family: 'DM Mono', monospace; font-size: .58rem; letter-spacing: .25em;
-  color: var(--accent); opacity: .65; margin-bottom: .9rem;
+  color: var(--accent); margin-bottom: .9rem;
   display: flex; align-items: center; gap: .75rem;
 }
 .quote-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
@@ -165,7 +198,7 @@ input, textarea, button { font-family: inherit; }
 }
 .quote-text::before {
   content: '"'; position: absolute; left: 0; top: -.1rem;
-  font-size: 1.8rem; color: var(--accent); opacity: .35; line-height: 1;
+  font-size: 1.8rem; color: var(--accent); line-height: 1;
 }
 .quote-src { font-family: 'DM Mono', monospace; font-size: .68rem; color: var(--text-dim); padding-left: 1.1rem; margin-top: .5rem; }
 .quote-actions { display: flex; gap: .75rem; margin-top: 1rem; padding-left: 1.1rem; align-items: center; }
@@ -187,8 +220,9 @@ input, textarea, button { font-family: inherit; }
 /* ============ NAV ============ */
 .nav {
   border-bottom: 1px solid var(--border); padding: 0 2rem;
-  display: flex; background: var(--surface);
+  display: flex; background: rgba(10,12,22,0.95);
   position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(8px);
 }
 .nav-right { margin-left: auto; display: flex; align-items: center; gap: 1rem; }
 .nav-user {
@@ -369,7 +403,7 @@ input, textarea, button { font-family: inherit; }
 .qi-text { font-size: .82rem; line-height: 1.55; font-style: italic; }
 .qi-src { font-family: 'DM Mono', monospace; font-size: .6rem; color: var(--text-dim); margin-top: .22rem; }
 .qi-tag { font-family: 'DM Mono', monospace; font-size: .52rem; padding: .14rem .38rem; border-radius: 2px; white-space: nowrap; flex-shrink: 0; margin-top: .1rem; }
-.qi-tag.builtin { background: var(--accent-dim); color: var(--accent); opacity: .7; }
+.qi-tag.builtin { background: var(--accent-dim); color: var(--accent); }
 .qi-tag.custom { background: #1a2a1a; color: #7aaa7a; }
 .qi-del { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: .78rem; transition: color .15s; flex-shrink: 0; }
 .qi-del:hover { color: var(--bad); }
