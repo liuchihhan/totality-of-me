@@ -1,12 +1,12 @@
 {
   "name": "好事壞事紀錄表",
-  "short_name": "好事壞事",
+  "short_name": "好事壞事紀錄表",
   "description": "記錄每天的好事與壞事",
   "start_url": "/totality-of-me/",
   "scope": "/totality-of-me/",
   "display": "standalone",
-  "background_color": "#0d0c0a",
-  "theme_color": "#0d0c0a",
+  "background_color": "#080a12",
+  "theme_color": "#080a12",
   "orientation": "portrait-primary",
   "icons": [
     {
