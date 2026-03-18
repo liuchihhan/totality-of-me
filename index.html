@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>好事壞事紀錄表</title>
 <!-- PWA -->
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="/totality-of-me/manifest.json">
 <meta name="theme-color" content="#0d0c0a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="好事壞事">
-<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/totality-of-me/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 /* ============ RESET & VARS ============ */
@@ -611,7 +611,11 @@ async function handleAuth() {
     // Save session
     sessionStorage.setItem('diary_user', JSON.stringify(currentUser));
     await enterApp();
-  setTimeout(showInstallPrompt, 1500);
+  // 如果 deferredPrompt 已準備好就直接顯示，否則等它準備好
+  setTimeout(() => {
+    if (deferredPrompt) { showInstallPrompt(); }
+    else { installBannerPending = true; setTimeout(showInstallPrompt, 3000); }
+  }, 1500);
   } catch(e) {
     setAuthMsg('連線錯誤，請確認 Supabase 設定');
     console.error(e);
@@ -878,22 +882,23 @@ function switchTab(name, btn) {
 // ======== PWA SERVICE WORKER ========
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/totality-of-me/sw.js', { scope: '/totality-of-me/' }).catch(() => {});
   });
 }
 
 // 安裝提示（Android Chrome 會自動觸發，iOS 顯示手動說明）
 let deferredPrompt = null;
+let installBannerPending = false;
+
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
-  // 登入後才顯示安裝提示
+  if (installBannerPending) { installBannerPending = false; showInstallPrompt(); }
 });
 
 function showInstallPrompt() {
-  const alreadyShown = localStorage.getItem('pwa_install_shown');
-  if (alreadyShown) return;
-  localStorage.setItem('pwa_install_shown', '1');
+  if (window.matchMedia('(display-mode: standalone)').matches) return;
+  // 已安裝就不顯示，移除只顯示一次的限制
 
   // 建立提示 banner
   const banner = document.createElement('div');
